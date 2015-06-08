@@ -77,21 +77,21 @@ Configuration
 Configuration is stored in the sakai.properties file (normally in {TOMCAT_HOME}/sakai).
 All the properties are optional. If they are not included the default values are used as shown.
 
-## i>clicker Tool configuration
-# the iclicker tool title in the workspaces, DEFAULT: i>clicker
-#iclicker.workspace.title={title}
-# the email addresses to send notifications to on failures, DEFAULT: system admin email (e.g. admin@server.edu)
-#iclicker.notify.emails={email (comma separated list)}
-# disable the alternate remote id handling, DEFAULT: false
-#iclicker.turn.off.alternate.remote.id={true|false}
-# Control the default max limit of 100 courses to fetch from Sakai
-# WARNING: making this number too large could cause performance issues
-#iclicker.max.courses=100
-# enable SSO support by setting a shared key (must be at least 10 chars long)
-#iclicker.sso.shared.key={key string}
-## Domain configuration
-# the iclicker domain URL, DEFAULT: the Sakai server URL (e.g. http://your.server.edu)
-#iclicker.domainurl={server url}
+    ## i>clicker Tool configuration
+    # the iclicker tool title in the workspaces, DEFAULT: i>clicker
+    #iclicker.workspace.title={title}
+    # the email addresses to send notifications to on failures, DEFAULT: system admin email (e.g. admin@server.edu)
+    #iclicker.notify.emails={email (comma separated list)}
+    # disable the alternate remote id handling, DEFAULT: false
+    #iclicker.turn.off.alternate.remote.id={true|false}
+    # Control the default max limit of 100 courses to fetch from Sakai
+    # WARNING: making this number too large could cause performance issues
+    #iclicker.max.courses=100
+    # enable SSO support by setting a shared key (must be at least 10 chars long)
+    #iclicker.sso.shared.key={key string}
+    ## Domain configuration
+    # the iclicker domain URL, DEFAULT: the Sakai server URL (e.g. http://your.server.edu)
+    #iclicker.domainurl={server url}
 
 NOTE on Single Sign-On::
 
