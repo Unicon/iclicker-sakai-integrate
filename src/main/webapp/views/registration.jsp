@@ -129,11 +129,7 @@
                 <div><fmt:message key="reg.remote.faq4.answer">[Content Here]</fmt:message></div>
 
                 <h3><a href="#"><fmt:message key="reg.remote.faq5.question">Question</fmt:message></a></h3>
-                <div>
-                    <fmt:message key="reg.remote.faq5.answer">[Content Here]</fmt:message>
-                    <img src="images/iclicker_go.png"
-                         alt="<fmt:message key="reg.remote.faq5.image.alt" />"/>
-                </div>
+                <div><fmt:message key="reg.remote.faq5.answer">[Content Here]</fmt:message></div>
 
                 <h3><a href="#"><fmt:message key="reg.remote.faq6.question">Question</fmt:message></a></h3>
                 <div><fmt:message key="reg.remote.faq6.answer">[Content Here]</fmt:message></div>
@@ -146,12 +142,6 @@
 
                 <h3><a href="#"><fmt:message key="reg.remote.faq9.question">Question</fmt:message></a></h3>
                 <div><fmt:message key="reg.remote.faq9.answer">[Content Here]</fmt:message></div>
-
-                <h3><a href="#"><fmt:message key="reg.remote.faq10.question">Question</fmt:message></a></h3>
-                <div><fmt:message key="reg.remote.faq10.answer">[Content Here]</fmt:message></div>
-
-                <h3><a href="#"><fmt:message key="reg.remote.faq11.question">Question</fmt:message></a></h3>
-                <div><fmt:message key="reg.remote.faq11.answer">[Content Here]</fmt:message></div>
 
             </div>
 
