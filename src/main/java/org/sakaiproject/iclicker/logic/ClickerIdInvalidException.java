@@ -27,6 +27,8 @@ package org.sakaiproject.iclicker.logic;
  */
 public class ClickerIdInvalidException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public static enum Failure { 
         /**
          * the clickerId is null or empty string

@@ -18,8 +18,7 @@
  */
 package org.sakaiproject.iclicker.dao;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.MySQLDialect;
 import org.hibernate.dialect.Oracle10gDialect;
@@ -27,6 +26,8 @@ import org.hibernate.engine.SessionFactoryImplementor;
 import org.sakaiproject.genericdao.api.search.Search;
 import org.sakaiproject.genericdao.hibernate.HibernateGeneralGenericDao;
 import org.sakaiproject.iclicker.model.ClickerLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.List;
@@ -42,7 +43,7 @@ public class IClickerDaoImpl
         extends HibernateGeneralGenericDao
         implements IClickerDao {
 
-    private static final Log log = LogFactory.getLog(IClickerDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(IClickerDaoImpl.class);
 
     public void init() {
         log.debug("init");
@@ -57,7 +58,7 @@ public class IClickerDaoImpl
                 log.info("Updated the iclicker_registration table in ORACLE");
             }
         } catch (Exception e) {
-            log.error("Unable to alter i>clicker iclicker_registration table, you will need to manually alter the clickerId column to 16 chars long (from 8 chars)");
+            log.error("Unable to alter i>clicker iclicker_registration table, you will need to manually alter the clickerId column to 16 chars long (from 8 chars)", e);
         }
 
     }
@@ -78,12 +79,10 @@ public class IClickerDaoImpl
      * @return true if a lock was obtained, false if not, null if failure
      */
     public Boolean obtainLock(String lockId, String executerId, long timePeriod) {
-        if (executerId == null ||
-                    "".equals(executerId)) {
+        if (StringUtils.isBlank(executerId)) {
             throw new IllegalArgumentException("The executer Id must be set");
         }
-        if (lockId == null ||
-                    "".equals(lockId)) {
+        if (StringUtils.isBlank(lockId)) {
             throw new IllegalArgumentException("The lock Id must be set");
         }
 
@@ -126,7 +125,7 @@ public class IClickerDaoImpl
         } catch (RuntimeException e) {
             obtainedLock = null; // null indicates the failure
             cleanupLockAfterFailure(lockId);
-            log.fatal("Lock obtaining failure for lock ("+lockId+"): " + e.getMessage(), e);
+            log.error("Lock obtaining failure for lock ({}): {}", lockId, e.getMessage(), e);
         }
 
         return obtainedLock;
@@ -144,12 +143,10 @@ public class IClickerDaoImpl
      * @return true if a lock was released, false if not, null if failure
      */
     public Boolean releaseLock(String lockId, String executerId) {
-        if (executerId == null ||
-                    "".equals(executerId)) {
+        if (StringUtils.isBlank(executerId)) {
             throw new IllegalArgumentException("The executer Id must be set");
         }
-        if (lockId == null ||
-                    "".equals(lockId)) {
+        if (StringUtils.isBlank(lockId)) {
             throw new IllegalArgumentException("The lock Id must be set");
         }
 
@@ -173,7 +170,7 @@ public class IClickerDaoImpl
         } catch (RuntimeException e) {
             releasedLock = null; // null indicates the failure
             cleanupLockAfterFailure(lockId);
-            log.fatal("Lock releasing failure for lock ("+lockId+"): " + e.getMessage(), e);
+            log.error("Lock releasing failure for lock ({}): {}", lockId, e.getMessage(), e);
         }
 
         return releasedLock;
@@ -193,7 +190,7 @@ public class IClickerDaoImpl
             getHibernateTemplate().deleteAll(locks);
             getHibernateTemplate().flush();
         } catch (Exception ex) {
-            log.error("Could not cleanup the lock ("+lockId+") after failure: " + ex.getMessage(), ex);
+            log.error("Could not cleanup the lock ({}) after failure: {}", lockId, ex.getMessage(), ex);
         }
     }
 

@@ -27,6 +27,8 @@ package org.sakaiproject.iclicker.logic;
  */
 public class ClickerLockException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public String name;
     public String holder;
 

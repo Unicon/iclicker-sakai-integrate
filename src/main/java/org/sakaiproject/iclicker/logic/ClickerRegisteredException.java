@@ -27,12 +27,13 @@ package org.sakaiproject.iclicker.logic;
  */
 public class ClickerRegisteredException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public String ownerId;
     public String clickerId;
     public String registeredOwnerId;
 
-    public ClickerRegisteredException(String ownerId, String clickerId,
-            String registeredOwnerId) {
+    public ClickerRegisteredException(String ownerId, String clickerId, String registeredOwnerId) {
         super();
         this.ownerId = ownerId;
         this.clickerId = clickerId;

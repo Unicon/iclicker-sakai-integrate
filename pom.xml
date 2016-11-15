@@ -11,7 +11,7 @@
     </organization>
     <inceptionYear>2009</inceptionYear>
     <packaging>war</packaging>
-    <version>1.6-SNAPSHOT</version>
+    <version>1.7-SNAPSHOT</version>
 
     <!-- Sakai master pom is the parent -->
     <parent>
@@ -20,7 +20,8 @@
         <!-- <version>2.7.2</version> -->
         <!-- <version>2.8.2</version> -->
         <!-- <version>2.9.2</version> -->
-        <version>10-SNAPSHOT</version>
+        <!-- version>10-SNAPSHOT</version -->
+        <version>11-SNAPSHOT</version>
         <relativePath>../master/pom.xml</relativePath>
     </parent>
 
@@ -55,8 +56,6 @@
         <dependency>
             <groupId>org.sakaiproject.edu-services.gradebook</groupId>
             <artifactId>gradebook-service-api</artifactId>
-<!--             <groupId>org.sakaiproject</groupId> -->
-<!--             <artifactId>sakai-gradebook-service-api</artifactId> -->
         </dependency>
 
         <!-- we are running a webapp in a servlet container so we need the servlet API -->
@@ -113,18 +112,16 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.4</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.4</version>
         </dependency>
         <!-- for national web-services -->
         <dependency>
             <groupId>org.sakaiproject.entitybus</groupId>
             <artifactId>entitybus-utils</artifactId>
-            <version>1.0.7</version>
+            <version>1.0.8</version>
         </dependency>
 
         <!-- JSP and standard tag libraries -->
@@ -137,7 +134,6 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
-            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>taglibs</groupId>
@@ -182,8 +178,8 @@
 
     <build>
         <!-- configure the build to use the standard maven structure -->
-    	<directory>target</directory>
-    	<outputDirectory>target/classes</outputDirectory>
+        <directory>target</directory>
+        <outputDirectory>target/classes</outputDirectory>
         <sourceDirectory>src/main/java</sourceDirectory>
         <resources>
             <resource>
@@ -229,7 +225,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
@@ -238,7 +233,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.4</version>
                 <configuration>
                     <warSourceDirectory>${basedir}/src/main/webapp</warSourceDirectory>
                     <webResources>
@@ -286,14 +280,13 @@
                     </execution>
                 </executions>
             </plugin>
-	    <plugin>
-	      <groupId>org.apache.maven.plugins</groupId>
-	      <artifactId>maven-gpg-plugin</artifactId>
-	      <version>1.5</version>
-	      <configuration>
-		<skip>true</skip>
-	      </configuration>
-	    </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
         </plugins>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
         <scriptSourceDirectory>src/main/webapp</scriptSourceDirectory>

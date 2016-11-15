@@ -28,8 +28,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.FunctionManager;
 import org.sakaiproject.authz.api.Member;
@@ -55,6 +54,10 @@ import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.util.ResourceLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import lombok.Setter;
 
 /**
  * This is the common parts of the logic which is external to our app logic, this provides isolation
@@ -74,7 +77,7 @@ public abstract class AbstractExternalLogic {
 
     public final static String NO_LOCATION = "noLocationAvailable";
 
-    private final static Log log = LogFactory.getLog(AbstractExternalLogic.class);
+    private final static Logger log = LoggerFactory.getLogger(AbstractExternalLogic.class);
 
     protected AuthzGroupService authzGroupService;
 
@@ -82,59 +85,15 @@ public abstract class AbstractExternalLogic {
         this.authzGroupService = authzGroupService;
     }
 
-    private EmailService emailService;
-
-    public void setEmailService(EmailService emailService) {
-        this.emailService = emailService;
-    }
-
-    protected FunctionManager functionManager;
-
-    public void setFunctionManager(FunctionManager functionManager) {
-        this.functionManager = functionManager;
-    }
-
-    protected GradebookService gradebookService;
-
-    public void setGradebookService(GradebookService gradebookService) {
-        this.gradebookService = gradebookService;
-    }
-
-    protected ToolManager toolManager;
-
-    public void setToolManager(ToolManager toolManager) {
-        this.toolManager = toolManager;
-    }
-
-    protected SecurityService securityService;
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    protected ServerConfigurationService serverConfigurationService;
-
-    public void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
-        this.serverConfigurationService = serverConfigurationService;
-    }
-
-    protected SessionManager sessionManager;
-
-    public void setSessionManager(SessionManager sessionManager) {
-        this.sessionManager = sessionManager;
-    }
-
-    protected SiteService siteService;
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    protected UserDirectoryService userDirectoryService;
-
-    public void setUserDirectoryService(UserDirectoryService userDirectoryService) {
-        this.userDirectoryService = userDirectoryService;
-    }
+    @Setter private EmailService emailService;
+    @Setter protected FunctionManager functionManager;
+    @Setter protected GradebookService gradebookService;
+    @Setter protected ToolManager toolManager;
+    @Setter protected SecurityService securityService;
+    @Setter protected ServerConfigurationService serverConfigurationService;
+    @Setter protected SessionManager sessionManager;
+    @Setter protected SiteService siteService;
+    @Setter protected UserDirectoryService userDirectoryService;
 
     public void init() {
         serverId = getConfigurationSetting(AbstractExternalLogic.SETTING_SERVER_ID, serverId);
@@ -171,7 +130,7 @@ public abstract class AbstractExternalLogic {
             Site site = siteService.getSite(locationId);
             title = site.getTitle();
         } catch (IdUnusedException e) {
-            log.warn("Cannot get the info about locationId: " + locationId);
+            log.warn("Cannot get the info about locationId: {}", locationId);
             title = "----------";
         }
         return title;
@@ -188,7 +147,7 @@ public abstract class AbstractExternalLogic {
      * OR null if the auth params are invalid
      */
     public String authenticateUser(String loginname, String password, boolean createSession) {
-        if ( isBlank(loginname) ) {
+        if (isBlank(loginname)) {
             throw new IllegalArgumentException("loginname cannot be blank");
         }
         if (password == null) {
@@ -221,6 +180,7 @@ public abstract class AbstractExternalLogic {
         } catch (UserNotDefinedException e) {
             userId = null;
         }
+
         return userId;
     }
     /**
@@ -229,7 +189,7 @@ public abstract class AbstractExternalLogic {
      * @return the new session ID for this user
      */
     public String startUserSession(String loginname) {
-        if ( isBlank(loginname) ) {
+        if (isBlank(loginname)) {
             throw new IllegalArgumentException("loginname cannot be blank");
         }
         User u;
@@ -238,6 +198,7 @@ public abstract class AbstractExternalLogic {
         } catch (UserNotDefinedException e) {
             throw new IllegalArgumentException("loginname ("+loginname+") is invalid, user not found: "+e);
         }
+
         return makeSession(u);
     }
 
@@ -256,6 +217,7 @@ public abstract class AbstractExternalLogic {
         } catch (UserNotDefinedException e) {
             throw new IllegalArgumentException("userId ("+userId+") is invalid, user not found: "+e);
         }
+
         return makeSession(u);
     }
 
@@ -303,6 +265,7 @@ public abstract class AbstractExternalLogic {
         if (s != null) {
             sessionId = s.getId();
         }
+
         return sessionId;
     }
 
@@ -332,9 +295,10 @@ public abstract class AbstractExternalLogic {
         try {
             name = userDirectoryService.getUser(userId).getDisplayName();
         } catch (UserNotDefinedException e) {
-            log.warn("Cannot get user displayname for id: " + userId);
+            log.warn("Cannot get user displayname for id: {}", userId);
             name = "--------";
         }
+
         return name;
     }
 
@@ -347,7 +311,7 @@ public abstract class AbstractExternalLogic {
             try {
                 u = userDirectoryService.getUserByEid(userId);
             } catch (UserNotDefinedException e1) {
-                log.warn("Cannot get user for id: " + userId);
+                log.warn("Cannot get user for id: {}", userId);
             }
         }
         if (u != null) {
@@ -356,6 +320,7 @@ public abstract class AbstractExternalLogic {
             user.fname = u.getFirstName();
             user.lname = u.getLastName();
         }
+
         return user;
     }
 
@@ -422,6 +387,7 @@ public abstract class AbstractExternalLogic {
         if (securityService.unlock(userId, permission, locationId)) {
             return true;
         }
+
         return false;
     }
 
@@ -437,11 +403,11 @@ public abstract class AbstractExternalLogic {
         if (max <= 0) {
             max = 100;
         }
-        List<Course> courses = new Vector<Course>();
-        if (siteId == null || "".equals(siteId)) {
+        List<Course> courses = new Vector<>();
+        if (StringUtils.isBlank(siteId)) {
             List<Site> sites = getInstructorSites(0, max);
             for (Site site : sites) {
-                courses.add( makeCourseFromSite(site) );
+                courses.add(makeCourseFromSite(site));
             }
         } else {
             // return a single site and enrollments
@@ -466,11 +432,12 @@ public abstract class AbstractExternalLogic {
         if (site.getCreatedTime() != null) {
             createdTime = site.getCreatedTime().getTime() / 1000;
         }
-        Course c = new Course(site.getId(), 
-                site.getTitle(), 
-                site.getShortDescription(), 
-                createdTime, 
-                site.isPublished() );
+        Course c = new Course(
+            site.getId(), 
+            site.getTitle(), 
+            site.getShortDescription(), 
+            createdTime, 
+            site.isPublished());
         return c;
     }
 
@@ -487,20 +454,19 @@ public abstract class AbstractExternalLogic {
         if (start <= 0 || start > max) {
             start = 1;
         }
-        List<Site> instSites = new ArrayList<Site>();
+        List<Site> instSites = new ArrayList<>();
         List<Site> sites = siteService.getSites(SelectionType.UPDATE, null, null, null,
                 SortType.TITLE_ASC, new PagingPosition(start, max));
         for (Site site : sites) {
             // filter out admin sites
             String sid = site.getId();
             if (sid.startsWith("!") || sid.endsWith("Admin") || sid.equals("mercury")) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Skipping site (" + sid + ") for current user in instructor courses");
-                }
+                log.debug("Skipping site ({}) for current user in instructor courses", sid);
                 continue;
             }
             instSites.add(site);
         }
+
         return instSites;
     }
 
@@ -551,8 +517,7 @@ public abstract class AbstractExternalLogic {
     }
 
     /**
-     * @param userId
-     *            the current sakai user id (not username)
+     * @param userId the current sakai user id (not username)
      * @return true if the user has update access in any sites
      */
     public boolean isUserInstructor(String userId) {
@@ -562,6 +527,7 @@ public abstract class AbstractExternalLogic {
             int count = siteService.countSites(SelectionType.UPDATE, null, null, null);
             inst = (count > 0);
         }
+
         return inst;
     }
 
@@ -579,7 +545,7 @@ public abstract class AbstractExternalLogic {
         }
         String courseId = null;
         List<Site> sites = getInstructorSites(0, 0);
-        if (sites != null && ! sites.isEmpty()) {
+        if (sites != null && !sites.isEmpty()) {
             if (sites.size() >= 99) {
                 // if instructor of 99 or more sites then auto-approved 
                 courseId = sites.get(0).getId();
@@ -593,6 +559,7 @@ public abstract class AbstractExternalLogic {
                 }
             }
         }
+
         return courseId;
     }
 
@@ -620,11 +587,11 @@ public abstract class AbstractExternalLogic {
         }
         Gradebook gb = new Gradebook(gbID);
         gb.students = getStudentsForCourse(siteId);
-        Map<String, String> studentUserIds = new ConcurrentHashMap<String, String>();
+        Map<String, String> studentUserIds = new ConcurrentHashMap<>();
         for (Student student : gb.students) {
             studentUserIds.put(student.userId, student.username);
         }
-        ArrayList<String> studentIds = new ArrayList<String>(studentUserIds.keySet());
+        ArrayList<String> studentIds = new ArrayList<>(studentUserIds.keySet());
         if (gbItemName == null) {
             List<Assignment> gbitems = gradebookService.getAssignments(gbID);
             for (Assignment assignment : gbitems) {
@@ -640,15 +607,13 @@ public abstract class AbstractExternalLogic {
                 throw new IllegalArgumentException("Invalid gradebook item name ("+gbItemName+"), no item with this name found in cource ("+siteId+")");
             }
         }
+
         return gb;
     }
 
-    private GradebookItem makeGradebookItemFromAssignment(String gbID, Assignment assignment,
-            Map<String, String> studentUserIds, ArrayList<String> studentIds) {
+    private GradebookItem makeGradebookItemFromAssignment(String gbID, Assignment assignment, Map<String, String> studentUserIds, ArrayList<String> studentIds) {
         // build up the items listing
-        GradebookItem gbItem = new GradebookItem(gbID, assignment.getName(), assignment
-                .getPoints(), assignment.getDueDate(), assignment.getExternalAppName(),
-                assignment.isReleased());
+        GradebookItem gbItem = new GradebookItem(gbID, assignment.getName(), assignment.getPoints(), assignment.getDueDate(), assignment.getExternalAppName(), assignment.isReleased());
         gbItem.id = assignment.getId().toString();
         /*
          *  We have to iterate through each student and get the grades out... 
@@ -656,13 +621,13 @@ public abstract class AbstractExternalLogic {
          */
         for (String studentId : studentIds) {
             // too expensive: if (gradebookService.getGradeViewFunctionForUserForStudentForItem(gbID, assignment.getId(), studentId) == null) {
-            Double grade = gradebookService.getAssignmentScore(gbID, assignment.getName(), studentId);
+            // Double grade = gradebookService.getAssignmentScore(gbID, assignment.getName(), studentId);
+            String grade = gradebookService.getAssignmentScoreString(gbID, assignment.getId(), studentId);
             if (grade != null) {
-                GradebookItemScore score = new GradebookItemScore(assignment.getId().toString(),
-                        studentId, grade.toString() );
+                GradebookItemScore score = new GradebookItemScore(assignment.getId().toString(), studentId, grade);
                 score.username = studentUserIds.get(studentId);
-                CommentDefinition cd = gradebookService.getAssignmentScoreComment(gbID, assignment
-                        .getName(), studentId);
+                // CommentDefinition cd = gradebookService.getAssignmentScoreComment(gbID, assignment.getName(), studentId);
+                CommentDefinition cd = gradebookService.getAssignmentScoreComment(gbID, assignment.getId(), studentId);
                 if (cd != null) {
                     score.comment = cd.getCommentText();
                     score.recorded = cd.getDateRecorded();
@@ -699,10 +664,10 @@ public abstract class AbstractExternalLogic {
         if (gbItem == null) {
             throw new IllegalArgumentException("gbItem cannot be null");
         }
-        if (gbItem.gradebookId == null || "".equals(gbItem.gradebookId)) {
+        if (StringUtils.isBlank(gbItem.gradebookId)) {
             throw new IllegalArgumentException("gbItem must have the gradebookId set");
         }
-        if (gbItem.name == null || "".equals(gbItem.name)) {
+        if (StringUtils.isBlank(gbItem.name)) {
             throw new IllegalArgumentException("gbItem must have the name set");
         }
         String gradebookUid = gbItem.gradebookId;
@@ -748,8 +713,8 @@ public abstract class AbstractExternalLogic {
                     assignment.setPoints(gbItem.pointsPossible);
                 }
                 // assignment.setReleased(gbItem.released); // no mod released setting from here
-                gradebookService.updateAssignment(gradebookUid, assignment.getName(), assignment);
-                // SecurityException, RuntimeException
+                // gradebookService.updateAssignment(gradebookUid, assignment.getName(), assignment);
+                gradebookService.updateAssignment(gradebookUid, assignment.getId(), assignment);
             }
         } catch (SecurityException e) {
             throw e; // rethrow
@@ -811,18 +776,22 @@ public abstract class AbstractExternalLogic {
                 }
                 try {
                     // check against existing score
-                    Double currentScore = gradebookService.getAssignmentScore(gradebookUid, gbItem.name, studentId);
+                    // Double currentScore = gradebookService.getAssignmentScore(gradebookUid, gbItem.name, studentId);
+                    String currentScore = gradebookService.getAssignmentScoreString(gradebookUid, assignment.getId(), studentId);
                     if (currentScore != null) {
-                        if (dScore < currentScore) {
+                        Double currentScoreDouble = Double.valueOf(currentScore);
+                        if (dScore < currentScoreDouble) {
                             score.error = SCORE_UPDATE_ERRORS;
                             errorsCount++;
                             continue;
                         }
                     }
                     // null grade deletes the score
-                    gradebookService.setAssignmentScore(gradebookUid, gbItem.name, studentId, dScore, "i>clicker");
+                    // gradebookService.setAssignmentScore(gradebookUid, gbItem.name, studentId, dScore, "i>clicker");
+                    gradebookService.setAssignmentScoreString(gradebookUid, assignment.getId(), studentId, Double.toString(dScore), "i>clicker");
                     if (score.comment != null && ! "".equals(score.comment)) {
-                        gradebookService.setAssignmentScoreComment(gradebookUid, gbItem.name, studentId, score.comment);
+                        // gradebookService.setAssignmentScoreComment(gradebookUid, gbItem.name, studentId, score.comment);
+                        gradebookService.setAssignmentScoreComment(gradebookUid, assignment.getId(), studentId, score.comment);
                     }
                 } catch (Exception e) {
                     // General errors, caused while performing updates (Tag: generalerrors)
