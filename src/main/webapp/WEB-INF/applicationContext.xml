@@ -26,8 +26,8 @@
 
     <!-- controller bean -->
     <bean id="org.sakaiproject.iclicker.tool.ToolController" class="org.sakaiproject.iclicker.tool.ToolController" init-method="init">
-        <property name="logic" ref="org.sakaiproject.iclicker.impl.logic.IClickerLogic" />
-        <property name="externalLogic" ref="org.sakaiproject.iclicker.impl.logic.ExternalLogic" />
+        <property name="logic" ref="org.sakaiproject.iclicker.logic.IClickerLogic" />
+        <property name="externalLogic" ref="org.sakaiproject.iclicker.logic.ExternalLogic" />
         <property name="messageSource" ref="messageSource" />
     </bean>
 

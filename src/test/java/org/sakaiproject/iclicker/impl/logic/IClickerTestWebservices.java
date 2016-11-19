@@ -21,7 +21,7 @@ package org.sakaiproject.iclicker.impl.logic;
 import junit.framework.TestCase;
 
 import org.sakaiproject.iclicker.exception.ClickerIdInvalidException;
-import org.sakaiproject.iclicker.impl.logic.IClickerLogic;
+import org.sakaiproject.iclicker.logic.IClickerLogic;
 import org.sakaiproject.iclicker.logic.stubs.ExternalLogicStub;
 
 /**

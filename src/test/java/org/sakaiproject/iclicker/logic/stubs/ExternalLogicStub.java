@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.sakaiproject.iclicker.impl.logic.ExternalLogic;
 import org.sakaiproject.iclicker.impl.logic.FakeDataPreload;
+import org.sakaiproject.iclicker.logic.ExternalLogic;
 import org.sakaiproject.iclicker.model.Course;
 import org.sakaiproject.iclicker.model.Student;
 import org.sakaiproject.iclicker.model.User;

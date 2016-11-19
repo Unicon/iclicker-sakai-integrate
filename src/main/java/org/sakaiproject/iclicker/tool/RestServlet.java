@@ -37,7 +37,7 @@ import org.sakaiproject.entitybus.util.http.HttpAuth;
 import org.sakaiproject.entitybus.util.http.HttpRESTUtils;
 import org.sakaiproject.iclicker.exception.ClickerIdInvalidException;
 import org.sakaiproject.iclicker.exception.ClickerRegisteredException;
-import org.sakaiproject.iclicker.impl.logic.IClickerLogic;
+import org.sakaiproject.iclicker.logic.IClickerLogic;
 import org.sakaiproject.iclicker.model.Course;
 import org.sakaiproject.iclicker.model.Gradebook;
 import org.sakaiproject.iclicker.model.GradebookItem;

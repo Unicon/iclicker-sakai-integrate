@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.impl.logic;
+package org.sakaiproject.iclicker.logic;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
@@ -82,16 +82,6 @@ public class IClickerLogic {
     public String serverId = "UNKNOWN_SERVER_ID";
     public String serverURL = DEFAULT_SERVER_URL;
     public String domainURL = DEFAULT_SERVER_URL;
-    /*
-    private static int DEFAULT_SYNC_HOUR = 3;
-    public String domainURL = DEFAULT_SERVER_URL;
-    public Boolean useNationalWebservices = null;
-    public String webservicesURL = NATIONAL_WS_URL;
-    public boolean webservicesUseBasicAuth = true;
-    public String webservicesBasicAuthHeader = NATIONAL_WS_BASIC_AUTH_HEADER;
-    public boolean disableSyncWithNational = false;
-    public int webservicesNationalSyncHour = DEFAULT_SYNC_HOUR;
-    */
     public String workspacePageTitle = "i>clicker";
     public boolean disableAlternateRemoteID = false;
     public boolean forceRestDebugging = false;

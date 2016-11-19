@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.impl.logic;
+package org.sakaiproject.iclicker.logic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +37,7 @@ import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.email.api.EmailService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.iclicker.api.logic.BigRunner;
+import org.sakaiproject.iclicker.impl.logic.BigRunnerImpl;
 import org.sakaiproject.iclicker.model.Course;
 import org.sakaiproject.iclicker.model.Gradebook;
 import org.sakaiproject.iclicker.model.GradebookItem;
@@ -81,15 +82,11 @@ public abstract class AbstractExternalLogic {
 
     public String serverId = "UNKNOWN_SERVER_ID";
 
-    public final static String NO_LOCATION = "noLocationAvailable";
+    public static final String NO_LOCATION = "noLocationAvailable";
 
-    private final static Logger log = LoggerFactory.getLogger(AbstractExternalLogic.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractExternalLogic.class);
 
-    protected AuthzGroupService authzGroupService;
-
-    public void setAuthzGroupService(AuthzGroupService authzGroupService) {
-        this.authzGroupService = authzGroupService;
-    }
+    @Setter protected AuthzGroupService authzGroupService;
 
     @Setter private EmailService emailService;
     @Setter protected FunctionManager functionManager;

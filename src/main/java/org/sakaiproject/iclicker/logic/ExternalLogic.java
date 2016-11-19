@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.impl.logic;
+package org.sakaiproject.iclicker.logic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
