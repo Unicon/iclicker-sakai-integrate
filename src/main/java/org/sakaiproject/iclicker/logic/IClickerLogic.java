@@ -52,6 +52,7 @@ import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -69,8 +70,6 @@ import java.util.Map.Entry;
 /**
  * This is the implementation of the business logic interface,
  * this handles all the business logic and processing for the application
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class IClickerLogic {
 
@@ -104,9 +103,10 @@ public class IClickerLogic {
     @SuppressWarnings("FieldCanBeLocal")
     private static String ICLICKER_TOOL_ID = "sakai.iclicker";
 
-    private IClickerDao dao;
-    private ExternalLogic externalLogic;
-    private ReloadableResourceBundleMessageSource messageSource;
+    @Setter private IClickerDao dao;
+    @Setter @Getter private ExternalLogic externalLogic;
+    @Setter private ReloadableResourceBundleMessageSource messageSource;
+    protected static IClickerLogic instance;
 
     /**
      * Place any code that should run when this class is initialized by spring here
@@ -1174,7 +1174,8 @@ public class IClickerLogic {
                 StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
             </Register>
          */
-        if (xml == null || "".equals(xml)) {
+
+        if (StringUtils.isBlank(xml)) {
             throw new IllegalArgumentException("xml must be set");
         }
 
@@ -1249,7 +1250,7 @@ public class IClickerLogic {
         User user = externalLogic.getUser(instructorId);
 
         if (user == null) {
-            throw new IllegalStateException("Could not get info about the user ("+instructorId+") related to the course listing");
+            throw new IllegalStateException("Could not get info about the user (" + instructorId + ") related to the course listing");
         }
 
         StringBuilder sb = new StringBuilder();
@@ -1497,17 +1498,21 @@ public class IClickerLogic {
                         }
 
                         String liScore = lineitem.getAttribute("score");
-                        if (liScore == null || "".equals(liScore)) {
-                            log.warn("Invalid score ("+liScore+"), skipping this entry: " + lineitem);
+
+                        if (StringUtils.isBlank(liScore)) {
+                            log.warn("Invalid score ({}), skipping this entry: {}", liScore, lineitem);
                             continue;
                         }
+
                         GradebookItem gbi = new GradebookItem(gb.id, liName);
-                        if (! gb.items.contains(gbi)) {
+
+                        if (!gb.items.contains(gbi)) {
                             gbi.pointsPossible = liPointsPossible;
                             gbi.type = liType;
                             gb.items.add(gbi);
                         } else {
                             int pos = gb.items.lastIndexOf(gbi);
+
                             if (pos >= 0) {
                                 gbi = gb.items.get(pos);
                             }
@@ -1521,7 +1526,6 @@ public class IClickerLogic {
                 }
             }
         } catch (DOMException e) {
-            e.printStackTrace();
             throw new RuntimeException("XML DOM parsing failure: " + e, e);
         }
         return gb;
@@ -1534,43 +1538,47 @@ public class IClickerLogic {
         if (items == null) {
             throw new IllegalArgumentException("items must be set");
         }
+
         // check for any errors
         boolean hasErrors = false;
+
         for (GradebookItem gbItem : items) {
             if (gbItem.scoreErrors != null && ! gbItem.scoreErrors.isEmpty()) {
                 hasErrors = true;
                 break;
             }
         }
-        // escapeForXML()
+
         /* SAMPLE
-<errors courseid="BFW61">
-  <Userdoesnotexisterrors>
-    <user id="student03" />
-  </Userdoesnotexisterrors>
-  <Scoreupdateerrors>
-    <user id="student02">
-      <lineitem name="Decsample" pointspossible="0" type="Text" score="9" />
-    </user>
-  </Scoreupdateerrors>
-  <PointsPossibleupdateerrors>
-    <user id="6367a431-557c-4869-88a7-229c2398f6ec">
-      <lineitem name="CMSIntTEST01" pointspossible="50" type="iclicker polling scores" score="70" />
-    </user>
-  </PointsPossibleupdateerrors>
-  <Scoreupdateerrors>
-    <user id="iclicker_student01">
-      <lineitem name="Mac-integrate-2" pointspossible="31" type="092509Mac" score="13"/>
-    </user>
-  </Scoreupdateerrors>
-  <Generalerrors>
-    <user id="student02" error="CODE">
-      <lineitem name="itemName" pointspossible="35" score="XX" error="CODE" />
-    </user>
-  </Generalerrors>
-</errors>
+            <errors courseid="BFW61">
+              <Userdoesnotexisterrors>
+                <user id="student03" />
+              </Userdoesnotexisterrors>
+              <Scoreupdateerrors>
+                <user id="student02">
+                  <lineitem name="Decsample" pointspossible="0" type="Text" score="9" />
+                </user>
+              </Scoreupdateerrors>
+              <PointsPossibleupdateerrors>
+                <user id="6367a431-557c-4869-88a7-229c2398f6ec">
+                  <lineitem name="CMSIntTEST01" pointspossible="50" type="iclicker polling scores" score="70" />
+                </user>
+              </PointsPossibleupdateerrors>
+              <Scoreupdateerrors>
+                <user id="iclicker_student01">
+                  <lineitem name="Mac-integrate-2" pointspossible="31" type="092509Mac" score="13"/>
+                </user>
+              </Scoreupdateerrors>
+              <Generalerrors>
+                <user id="student02" error="CODE">
+                  <lineitem name="itemName" pointspossible="35" score="XX" error="CODE" />
+                </user>
+              </Generalerrors>
+            </errors>
          */
+
         String output = null;
+
         if (hasErrors) {
             Map<String, String> lineitems = makeLineitemsMap(items);
             HashSet<String> invalidUserIds = new HashSet<String>();
@@ -1580,37 +1588,45 @@ public class IClickerLogic {
             sb.append(escapeForXML(courseId));
             sb.append("\">\n");
             // loop through items and errors and generate errors xml blocks
-            Map<String, StringBuilder> errorItems = new LinkedHashMap<String, StringBuilder>();
+            Map<String, StringBuilder> errorItems = new LinkedHashMap<>();
+
             for (GradebookItem gbItem : items) {
                 if (gbItem.scoreErrors != null && ! gbItem.scoreErrors.isEmpty()) {
                     for (GradebookItemScore score : gbItem.scores) {
                         if (score.error != null) {
                             String lineitem = lineitems.get(gbItem.name);
+
                             if (AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR.equals(score.error)) {
                                 String key = AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR;
+
                                 if (invalidUserIds.add(score.userId)) {
                                     // only if the invalid user is not already listed in the errors
                                     if (! errorItems.containsKey(key)) {
                                         errorItems.put(key, new StringBuilder());
                                     }
+
                                     @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                     StringBuilder sbe = errorItems.get(key);
                                     sbe.append("    <user id=\"").append(score.userId).append("\" />\n");
                                 }
                             } else if (AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS.equals(score.error)) {
                                 String key = AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS;
+
                                 if (! errorItems.containsKey(key)) {
                                     errorItems.put(key, new StringBuilder());
                                 }
+
                                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
                                 String li = lineitem.replace(SCORE_KEY, score.grade);
                                 sbe.append("    <user id=\"").append(score.userId).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
                             } else if (AbstractExternalLogic.SCORE_UPDATE_ERRORS.equals(score.error)) {
                                 String key = AbstractExternalLogic.SCORE_UPDATE_ERRORS;
+
                                 if (! errorItems.containsKey(key)) {
                                     errorItems.put(key, new StringBuilder());
                                 }
+
                                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
                                 String li = lineitem.replace(SCORE_KEY, score.grade);
@@ -1618,9 +1634,11 @@ public class IClickerLogic {
                             } else {
                                 // general error
                                 String key = AbstractExternalLogic.GENERAL_ERRORS;
+
                                 if (! errorItems.containsKey(key)) {
                                     errorItems.put(key, new StringBuilder());
                                 }
+
                                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
                                 String li = lineitem.replace(SCORE_KEY, score.grade);
@@ -1630,55 +1648,66 @@ public class IClickerLogic {
                     }
                 }
             }
+
             // loop through error items and dump to the output
             if (errorItems.containsKey(AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR)) {
                 sb.append("  <Userdoesnotexisterrors>\n");
                 sb.append(errorItems.get(AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR));
                 sb.append("  </Userdoesnotexisterrors>\n");
             }
+
             if (errorItems.containsKey(AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS)) {
                 sb.append("  <PointsPossibleupdateerrors>\n");
                 sb.append(errorItems.get(AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS));
                 sb.append("  </PointsPossibleupdateerrors>\n");
             }
+
             if (errorItems.containsKey(AbstractExternalLogic.SCORE_UPDATE_ERRORS)) {
                 sb.append("  <Scoreupdateerrors>\n");
                 sb.append(errorItems.get(AbstractExternalLogic.SCORE_UPDATE_ERRORS));
                 sb.append("  </Scoreupdateerrors>\n");
             }
+
             if (errorItems.containsKey(AbstractExternalLogic.GENERAL_ERRORS)) {
                 sb.append("  <Generalerrors>\n");
                 sb.append(errorItems.get(AbstractExternalLogic.GENERAL_ERRORS));
                 sb.append("  </Generalerrors>\n");
             }
+
             // close out
             sb.append("</errors>\n");
             output = sb.toString();
         }
+
         return output;
     }
 
     public String[] makeClickerIdsAndDates(Collection<ClickerRegistration> regs) {
         String clickerIds = "";
         String clickerAddedDates = "";
+
         if (regs != null) {
             DateFormat df = new SimpleDateFormat("MMM/dd/yyyy");
             StringBuilder cids = new StringBuilder();
             StringBuilder cads = new StringBuilder();
             int count = 0;
+
             for (ClickerRegistration registration : regs) {
                 if (count > 0) {
                     cids.append(",");
                     cads.append(",");
                 }
+
                 String clickerId = registration.getClickerId();
                 String clickerDate = df.format(registration.getDateCreated());
                 cids.append(clickerId);
                 cads.append(clickerDate);
                 count++;
-                if (! disableAlternateRemoteID) {
+
+                if (!disableAlternateRemoteID) {
                     // add in the alternate clicker id if needed
                     String alternateId = translateClickerId(clickerId);
+
                     if (alternateId != null) {
                         cids.append(",");
                         cads.append(",");
@@ -1688,9 +1717,11 @@ public class IClickerLogic {
                     }
                 }
             }
+
             clickerIds = cids.toString();
             clickerAddedDates = cads.toString();
         }
+
         return new String[] {clickerIds, clickerAddedDates};
     }
 
@@ -1700,7 +1731,7 @@ public class IClickerLogic {
      * ************************************************************************
      */
 
-    ThreadLocal<String> lastValidGOKey = new ThreadLocal<String>();
+    ThreadLocal<String> lastValidGOKey = new ThreadLocal<>();
 
     public static String CLICKERID_SAMPLE = "11A4C277";
     /**
@@ -1726,65 +1757,77 @@ public class IClickerLogic {
         if (clickerId == null || "".equals(clickerId)) {
             throw new ClickerIdInvalidException("empty or null clickerId", Failure.EMPTY, clickerId);
         }
+
         int clickerIdLength = clickerId.length();
+
         if (clickerIdLength == 12) {
             // support for new clicker go ids
             clickerId = clickerId.trim().toUpperCase();
-            if (! clickerId.matches("[0-9A-Z]+")) {
+
+            if (!clickerId.matches("[0-9A-Z]+")) {
                 throw new ClickerIdInvalidException("clickerId can only contain A-Z and 0-9", Failure.GO_CHARS, clickerId);
             }
+
             if (StringUtils.isEmpty(lastName)) {
                 if (this.externalLogic.getCurrentUserId() == null) {
                     throw new ClickerIdInvalidException("No current user available, cannot validate GO clickerid: "+clickerId, Failure.GO_NO_USER, clickerId);
                 }
+
                 User u = this.externalLogic.getUser(this.externalLogic.getCurrentUserId());
                 lastName = u.lname;
             }
+
             // store the validated clicker to avoid checking the WS repeatedly in a single request
             String currentGOKey = clickerId+":"+lastName;
             String lastValidKey = this.lastValidGOKey.get();
+
             if (!currentGOKey.equals(lastValidKey)) {
                 this.lastValidGOKey.remove();
                 wsGoVerifyId(clickerId, lastName); // ClickerIdInvalidException exception if invalid (or RT exception)
                 this.lastValidGOKey.set(currentGOKey);
             }
-
         } else if (clickerIdLength <= 8) {
             // remote ids
             clickerId = clickerId.trim().toUpperCase();
+
             if (! clickerId.matches("[0-9A-F]+")) {
                 throw new ClickerIdInvalidException("clickerId can only contains A-F and 0-9", Failure.CHARS, clickerId);
             }
+
             while (clickerId.length() < 8) {
                 clickerId = "0" + clickerId;
             }
+
             if (CLICKERID_SAMPLE.equals(clickerId)) {
                 throw new ClickerIdInvalidException("clickerId cannot match the sample ID", Failure.SAMPLE, clickerId);
             }
+
             String[] idArray = new String[4];
             idArray[0] = clickerId.substring(0, 2);
             idArray[1] = clickerId.substring(2, 4);
             idArray[2] = clickerId.substring(4, 6);
             idArray[3] = clickerId.substring(6, 8);
             int checksum = 0;
+
             for (String piece : idArray) {
                 int hex = Integer.parseInt(piece, 16);
                 checksum = checksum ^ hex;
             }
+
             if (checksum != 0) {
                 throw new ClickerIdInvalidException("clickerId checksum ("+checksum+") validation failed", Failure.CHECKSUM, clickerId);
             }
-
         } else {
             // totally invalid clicker length
             this.lastValidGOKey.remove();
             throw new ClickerIdInvalidException("clicker_id is an invalid length ("+clickerIdLength+"), must be 8 or 12 chars", Failure.LENGTH, clickerId);
         }
+
         return clickerId;
     }
 
     /**
-     * For all remoteids starting with �2�, �4�, �8� we have to generate an alternate id
+     * For all remoteids starting with 2, 4, 8, we have to generate an alternate id
      * and concatenate it with the existing remote ids for that particular user in the data
      * sent to the iclicker desktop app (this is like creating an extra clickerid based on the existing ones)
      * 
@@ -1793,6 +1836,7 @@ public class IClickerLogic {
      */
     public String translateClickerId(String clickerId) {
         String alternateId = null;
+
         try {
             // validate the input, do nothing but return null if invalid
             clickerId = validateClickerId(clickerId, null);
@@ -1805,15 +1849,18 @@ public class IClickerLogic {
                     int p3 = Integer.parseInt(clickerId.substring(4, 6), 16);
                     int p4 = p1 ^ p2 ^ p3;
                     String part4 = Integer.toHexString(p4).toUpperCase();
+
                     if (part4.length() == 1) {
                         part4 = "0"+part4;
                     }
+
                     alternateId = "0" + clickerId.substring(1, 6) + part4;
                 }
             }
         } catch (ClickerIdInvalidException e) {
             alternateId = null;
         }
+
         return alternateId;
     }
 
@@ -1835,9 +1882,11 @@ public class IClickerLogic {
         if (clickerGOId == null || studentLastName == null) {
             throw new IllegalArgumentException("clickerGOId="+clickerGOId+" and studentLastName="+studentLastName+" must both be set");
         }
+
         String resultXML;
         String url = "https://www.iclickergo.com/webservice/webvoting.asmx";
         String encodedClickerId = Base64.encodeBase64String(clickerGOId.getBytes());
+
         try {
             Map<String, String> headers = new HashMap<String, String>();
             headers.put("Host", "www.iclickergo.com");
@@ -1856,16 +1905,19 @@ public class IClickerLogic {
         } catch (Exception e) {
             throw new RuntimeException("Failed to post verify id ("+clickerGOId+") to webservice ("+url+"): " + e);
         }
+ 
         if (resultXML == null) {
             // no registration matches
             throw new ClickerIdInvalidException("No match found on the server for clicker: "+clickerGOId, Failure.GO_NO_MATCH, clickerGOId);
         } else {
             // <StudentEnrol><S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/></StudentEnrol>
             resultXML = new String(Base64.decodeBase64(resultXML));
+  
             if (StringUtils.contains(resultXML, "StudentEnrol") && StringUtils.contains(resultXML, "LastName")) {
                 Map<String, String> data = decodeGetRegisteredForClickerMACResult(resultXML);
                 String lastName = data.get("LastName"); // StudentEnrol->LastName;
                 boolean verified = studentLastName.equalsIgnoreCase(lastName);
+  
                 if (!verified) {
                     // should we log a warning here? -AZ
                     throw new ClickerIdInvalidException("Lastname ("+studentLastName+") does not match with registered lastname ("+lastName+") for clicker ("+clickerGOId+")", Failure.GO_LASTNAME, clickerGOId);
@@ -1877,6 +1929,7 @@ public class IClickerLogic {
                 throw new RuntimeException(msg);
             }
         }
+  
         return true;
     }
 
@@ -1894,20 +1947,26 @@ public class IClickerLogic {
             log.error(msg);
             throw new IllegalStateException(msg);
         }
+  
         String xml;
         String body = response.getResponseBody();
+  
         if (body != null) {
             body = body.trim();
+  
             if (emptyIndicator != null && StringUtils.contains(body, emptyIndicator)) {
                 xml = "";
             } else {
                 String result = StringUtils.substringBetween(body, start, end);
+
                 if (result == null) {
                     String msg = "i>clicker Webservices failure: ("+response.responseCode+"), message:" + response.responseMessage+" : body="+body;
                     log.error(msg);
                     throw new IllegalStateException(msg);
                 }
+
                 xml = StringEscapeUtils.unescapeXml(result);
+
                 if (xml.startsWith("<RetStatus")) {
                     String msg = "i>clicker Webservices failure: ("+response.responseCode+"), message:" + response.responseMessage+" : xml="+xml;
                     log.error(msg);
@@ -1919,6 +1978,7 @@ public class IClickerLogic {
             log.error(msg);
             throw new IllegalStateException(msg);
         }
+
         return xml;
     }
 
@@ -1932,42 +1992,50 @@ public class IClickerLogic {
      */
     public Map<String, String> decodeGetRegisteredForClickerMACResult(String xml) {
         /*
-        <StudentEnrol>
-        <S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/>
-        </StudentEnrol>
+            <StudentEnrol>
+                <S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/>
+            </StudentEnrol>
          */
-        if (xml == null || "".equals(xml)) {
+
+        if (StringUtils.isBlank(xml)) {
             throw new IllegalArgumentException("xml must be set");
         }
+
         // read the xml (try to anyway)
         DocumentBuilder db;
+
         try {
             db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
             throw new RuntimeException("XML parser failure: " + e, e);
         }
+
         Document doc;
+
         try {
-            doc = db.parse( new ByteArrayInputStream(xml.getBytes()) );
+            doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
         } catch (SAXException e) {
-            e.printStackTrace();
             throw new RuntimeException("XML read failure: " + e, e);
         } catch (IOException e) {
-            e.printStackTrace();
             throw new RuntimeException("XML IO failure: " + e, e);
         }
-        HashMap<String, String> m = new HashMap<String, String>();
+
+        HashMap<String, String> m = new HashMap<>();
+
         try {
             doc.getDocumentElement().normalize();
             NodeList users = doc.getElementsByTagName("S");
+
             if (users.getLength() == 0) {
                 throw new IllegalArgumentException("Invalid XML, no S element");
             }
+
             Node userNode = users.item(0);
+
             if (userNode.getNodeType() == Node.ELEMENT_NODE) {
                 Element user = (Element) userNode;
                 NamedNodeMap attributes = user.getAttributes();
+
                 for (int j = 0; j < attributes.getLength(); j++) {
                     String name = attributes.item(j).getNodeName();
                     String value = attributes.item(j).getNodeValue();
@@ -1977,12 +2045,10 @@ public class IClickerLogic {
                 throw new IllegalArgumentException("Invalid user node in XML: " + userNode);
             }
         } catch (DOMException e) {
-            e.printStackTrace();
             throw new RuntimeException("XML DOM parsing failure: " + e, e);
         }
         return m;
     }
-
 
     public static final char AMP   = '&';
     public static final char APOS  = '\'';
@@ -1999,60 +2065,40 @@ public class IClickerLogic {
      */
     public static String escapeForXML(String string) {
         StringBuilder sb = new StringBuilder();
+
         for (int i = 0, len = string.length(); i < len; i++) {
             char c = string.charAt(i);
+
             switch (c) {
-            case AMP:
-                sb.append("&amp;");
-                break;
-            case LT:
-                sb.append("&lt;");
-                break;
-            case GT:
-                sb.append("&gt;");
-                break;
-            case QUOT:
-                sb.append("&quot;");
-                break;
-            case APOS:
-                sb.append("&apos;");
-                break;
-            default:
-                sb.append(c);
+                case AMP:
+                    sb.append("&amp;");
+                    break;
+                case LT:
+                    sb.append("&lt;");
+                    break;
+                case GT:
+                    sb.append("&gt;");
+                    break;
+                case QUOT:
+                    sb.append("&quot;");
+                    break;
+                case APOS:
+                    sb.append("&apos;");
+                    break;
+                default:
+                    sb.append(c);
             }
         }
+
         return sb.toString();
     }
 
-
-    protected static IClickerLogic instance;
     public static IClickerLogic getInstance() {
         return IClickerLogic.instance;
     }
+
     protected static void setInstance(IClickerLogic instance) {
         IClickerLogic.instance = instance;
-    }
-
-    // SPRING setters
-
-    /* UNUSED
-    public void setUseNationalServices(Boolean useNationalServices) {
-        // nothing
-    }*/
-
-    public void setDao(IClickerDao dao) {
-        this.dao = dao;
-    }
-
-    public void setExternalLogic(ExternalLogic externalLogic) {
-        this.externalLogic = externalLogic;
-    }
-    public ExternalLogic getExternalLogic() {
-        return externalLogic;
-    }
-
-    public void setMessageSource(ReloadableResourceBundleMessageSource messageSource) {
-        this.messageSource = messageSource;
     }
 
 }

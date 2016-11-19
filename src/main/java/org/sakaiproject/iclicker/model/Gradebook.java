@@ -21,11 +21,11 @@ package org.sakaiproject.iclicker.model;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.commons.lang.StringUtils;
+
 
 /**
  * This holds the values of all the items in a gradebook and the users/scores
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class Gradebook {
     public String id;
@@ -54,18 +54,28 @@ public class Gradebook {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+
+        if (getClass() != obj.getClass()) {
             return false;
+        }
+
         Gradebook other = (Gradebook) obj;
+
         if (id == null) {
-            if (other.id != null)
+            if (other.id != null) {
                 return false;
-        } else if (!id.equals(other.id))
+            }
+        } else if (!StringUtils.equals(id, other.id)) {
             return false;
+        }
+
         return true;
     }
 

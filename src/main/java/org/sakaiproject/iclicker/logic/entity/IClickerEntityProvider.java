@@ -156,8 +156,6 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             Course course = new Course(courseId, courseId);
             course.students = students;
             String out = XML_HEADER + logic.encodeEnrollments(course);
-            //String out = XML_HEADER
-            //  + XMLTranscoder.makeXML(students, "students", null, false, false, false, false, 4);
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
         }

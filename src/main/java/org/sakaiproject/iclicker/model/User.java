@@ -22,6 +22,8 @@ package org.sakaiproject.iclicker.model;
 import java.io.Serializable;
 import java.util.Comparator;
 
+import org.apache.commons.lang.StringUtils;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -74,9 +76,11 @@ public class User {
         if (this == obj) {
             return true;
         }
+
         if (obj == null) {
             return false;
         }
+
         if (getClass() != obj.getClass()) {
             return false;
         }
@@ -87,7 +91,7 @@ public class User {
             if (other.userId != null) {
                 return false;
             }
-        } else if (!userId.equals(other.userId)) {
+        } else if (!StringUtils.equals(userId, other.userId)) {
             return false;
         }
 
@@ -95,7 +99,7 @@ public class User {
             if (other.username != null) {
                 return false;
             }
-        } else if (!username.equals(other.username)) {
+        } else if (!StringUtils.equals(username, other.username)) {
             return false;
         }
 

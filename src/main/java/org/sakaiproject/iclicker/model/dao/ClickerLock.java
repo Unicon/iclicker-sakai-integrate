@@ -18,72 +18,39 @@
  */
 package org.sakaiproject.iclicker.model.dao;
 
+import java.io.Serializable;
 import java.util.Date;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * This defines locks to allow for cluster operations
  */
-public class ClickerLock implements java.io.Serializable {
+public class ClickerLock implements Serializable {
 
-	private Long id;
+    private static final long serialVersionUID = 1L;
 
-	private Date lastModified;
+    @Setter @Getter private Long id;
+    @Setter @Getter private Date lastModified;
 
-	/**
-	 * The name of the lock
-	 */
-	private String name;
+    /**
+     * The name of the lock
+     */
+    @Setter @Getter private String name;
 
-	/**
-	 * The holder (owner) of this lock
-	 */
-	private String holder;
+    /**
+     * The holder (owner) of this lock
+     */
+    @Setter @Getter private String holder;
 
-	// Constructors
+    public ClickerLock() {
+    }
 
-	/** default constructor */
-	public ClickerLock() {
-	}
-
-	/** full constructor */
-	public ClickerLock(String name, String holder) {
-		this.lastModified = new Date();
-		this.name = name;
-		this.holder = holder;
-	}
-
-	// Property accessors
-	public Long getId() {
-		return this.id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Date getLastModified() {
-		return this.lastModified;
-	}
-
-	public void setLastModified(Date lastModified) {
-		this.lastModified = lastModified;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-   
-   public String getHolder() {
-      return holder;
-   }
-   
-   public void setHolder(String holder) {
-      this.holder = holder;
-   }
-
+    public ClickerLock(String name, String holder) {
+        this.lastModified = new Date();
+        this.name = name;
+        this.holder = holder;
+    }
 
 }

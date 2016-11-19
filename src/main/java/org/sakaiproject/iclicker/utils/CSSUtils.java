@@ -19,9 +19,10 @@
  *
  **********************************************************************************/
 
-package org.sakaiproject.iclicker.tool;
+package org.sakaiproject.iclicker.utils;
 
 import org.sakaiproject.site.api.Site;
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 
 /* NOTE: copied from portal/portal-util/util/src/java/org/sakaiproject/portal/util/CSSUtils.java
@@ -69,13 +70,14 @@ public class CSSUtils {
         }
 
         String prefix = ServerConfigurationService.getString(PORTAL_SKIN_NEOPREFIX_PROPERTY, PORTAL_SKIN_NEOPREFIX_DEFAULT);
+
         if (prefix == null) {
             prefix = "";
         }
 
         String templates = ServerConfigurationService.getString("portal.templates", "neoskin");
 
-        if ("neoskin".equals(templates) && !skinFolder.startsWith(prefix)) {
+        if (StringUtils.equals("neoskin", templates) && !StringUtils.startsWith(skinFolder, prefix)) {
             skinFolder = prefix + skinFolder;
         }
 

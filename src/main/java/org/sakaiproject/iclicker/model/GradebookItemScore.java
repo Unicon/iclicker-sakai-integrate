@@ -20,10 +20,10 @@ package org.sakaiproject.iclicker.model;
 
 import java.util.Date;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * This represents an individual score in a gradebook grade item for a user
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class GradebookItemScore {
     public String id;
@@ -47,26 +47,27 @@ public class GradebookItemScore {
         this(itemName, userId, grade, null, null, null, null);
     }
 
-    public GradebookItemScore(String itemName, String userId, String grade, String username,
-            String graderUserId, Date recorded, String comment) {
-        if (itemName == null || "".equals(itemName)) {
+    public GradebookItemScore(String itemName, String userId, String grade, String username, String graderUserId, Date recorded, String comment) {
+        if (StringUtils.isBlank(itemName)) {
             throw new IllegalArgumentException("itemName must be set");
         }
-        if (grade == null || "".equals(grade)) {
+        if (StringUtils.isBlank(grade)) {
             throw new IllegalArgumentException("grade must be set");
         }
-        if ( (userId == null || "".equals(userId))
-                && (username == null || "".equals(username) ) ) {
+        if (StringUtils.isBlank(userId) && StringUtils.isBlank(username) ) {
             throw new IllegalArgumentException("userId or username must be set");
         }
+
         assignId(itemName, userId != null ? userId : username);
         this.username = username;
         this.graderUserId = graderUserId;
+
         if (recorded == null) {
             this.recorded = new Date();
         } else {
             this.recorded = new Date(recorded.getTime());
         }
+
         this.grade = grade;
         this.comment = comment;
     }
@@ -98,9 +99,11 @@ public class GradebookItemScore {
         if (this == obj) {
             return true;
         }
+
         if (obj == null) {
             return false;
         }
+
         if (getClass() != obj.getClass()) {
             return false;
         }
@@ -111,7 +114,7 @@ public class GradebookItemScore {
             if (other.grade != null) {
                 return false;
             }
-        } else if (!grade.equals(other.grade)) {
+        } else if (!StringUtils.equals(grade, other.grade)) {
             return false;
         }
 
@@ -119,7 +122,7 @@ public class GradebookItemScore {
             if (other.itemName != null) {
                 return false;
             }
-        } else if (!itemName.equals(other.itemName)) {
+        } else if (!StringUtils.equals(itemName, other.itemName)) {
             return false;
         }
 
@@ -127,7 +130,7 @@ public class GradebookItemScore {
             if (other.userId != null) {
                 return false;
             }
-        } else if (!userId.equals(other.userId)) {
+        } else if (!StringUtils.equals(userId, other.userId)) {
             return false;
         }
 

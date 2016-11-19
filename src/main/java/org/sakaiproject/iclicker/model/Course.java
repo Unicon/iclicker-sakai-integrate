@@ -20,12 +20,12 @@ package org.sakaiproject.iclicker.model;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 import lombok.Getter;
 
 /**
  * Represents a course
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class Course {
 
@@ -99,7 +99,7 @@ public class Course {
             if (other.id != null) {
                 return false;
             }
-        } else if (!id.equals(other.id)) {
+        } else if (!StringUtils.equals(id, other.id)) {
             return false;
         }
 
