@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.impl.logic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +36,12 @@ import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.email.api.EmailService;
 import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.iclicker.api.logic.BigRunner;
+import org.sakaiproject.iclicker.model.Course;
+import org.sakaiproject.iclicker.model.Gradebook;
+import org.sakaiproject.iclicker.model.GradebookItem;
+import org.sakaiproject.iclicker.model.GradebookItemScore;
+import org.sakaiproject.iclicker.model.Student;
 import org.sakaiproject.javax.PagingPosition;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.service.gradebook.shared.CommentDefinition;
@@ -302,8 +308,8 @@ public abstract class AbstractExternalLogic {
         return name;
     }
 
-    public org.sakaiproject.iclicker.logic.User getUser(String userId) {
-        org.sakaiproject.iclicker.logic.User user = null;
+    public org.sakaiproject.iclicker.model.User getUser(String userId) {
+        org.sakaiproject.iclicker.model.User user = null;
         User u = null;
         try {
             u = userDirectoryService.getUser(userId);
@@ -315,7 +321,7 @@ public abstract class AbstractExternalLogic {
             }
         }
         if (u != null) {
-            user = new org.sakaiproject.iclicker.logic.User(u.getId(),
+            user = new org.sakaiproject.iclicker.model.User(u.getId(),
                     u.getEid(), u.getDisplayName(), u.getSortName(), u.getEmail());
             user.fname = u.getFirstName();
             user.lname = u.getLastName();

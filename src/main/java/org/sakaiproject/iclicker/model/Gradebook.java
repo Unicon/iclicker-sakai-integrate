@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.model;
 
 import java.util.List;
 import java.util.Vector;
@@ -31,8 +31,8 @@ public class Gradebook {
     public String id;
     public String courseId;
 
-    public List<Student> students = new Vector<Student>();
-    public List<GradebookItem> items = new Vector<GradebookItem>();
+    public List<Student> students = new Vector<>();
+    public List<GradebookItem> items = new Vector<>();
 
     public Gradebook(String id) {
         this.id = id;

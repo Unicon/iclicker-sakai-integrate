@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.impl.logic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -79,7 +79,6 @@ public class ExternalLogic extends AbstractExternalLogic {
         }
         return gb;
     }
-
     private GradebookItem makeGradebookItemFromAssignment(String gbID, Assignment assignment,
             Map<String, String> studentUserIds, ArrayList<String> studentIds) {
         // build up the items listing
@@ -119,7 +118,6 @@ public class ExternalLogic extends AbstractExternalLogic {
         // }
         return gbItem;
     }
-
     public GradebookItem saveGradebookItem(GradebookItem gbItem) {
         if (gbItem == null) {
             throw new IllegalArgumentException("gbItem cannot be null");
@@ -206,7 +204,6 @@ public class ExternalLogic extends AbstractExternalLogic {
                     scoreErrors.put(score, "NO_SCORE_ERROR");
                     continue;
                 }
-
                 Double dScore;
                 try {
                     dScore = Double.valueOf(score.grade);

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.model;
 
 import java.util.Date;
 
@@ -40,10 +40,13 @@ public class GradebookItemScore {
      */
     public String error;
 
-    protected GradebookItemScore() {}
+    protected GradebookItemScore() {
+    }
+
     public GradebookItemScore(String itemName, String userId, String grade) {
         this(itemName, userId, grade, null, null, null, null);
     }
+
     public GradebookItemScore(String itemName, String userId, String grade, String username,
             String graderUserId, Date recorded, String comment) {
         if (itemName == null || "".equals(itemName)) {
@@ -86,33 +89,48 @@ public class GradebookItemScore {
         result = prime * result + ((grade == null) ? 0 : grade.hashCode());
         result = prime * result + ((itemName == null) ? 0 : itemName.hashCode());
         result = prime * result + ((userId == null) ? 0 : userId.hashCode());
+
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
+
         GradebookItemScore other = (GradebookItemScore) obj;
+
         if (grade == null) {
-            if (other.grade != null)
+            if (other.grade != null) {
                 return false;
-        } else if (!grade.equals(other.grade))
+            }
+        } else if (!grade.equals(other.grade)) {
             return false;
+        }
+
         if (itemName == null) {
-            if (other.itemName != null)
+            if (other.itemName != null) {
                 return false;
-        } else if (!itemName.equals(other.itemName))
+            }
+        } else if (!itemName.equals(other.itemName)) {
             return false;
+        }
+
         if (userId == null) {
-            if (other.userId != null)
+            if (other.userId != null) {
                 return false;
-        } else if (!userId.equals(other.userId))
+            }
+        } else if (!userId.equals(other.userId)) {
             return false;
+        }
+
         return true;
     }
 

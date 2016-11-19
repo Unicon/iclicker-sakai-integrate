@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.impl.logic;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
@@ -24,17 +24,27 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.entitybroker.util.http.HttpRESTUtils;
 import org.sakaiproject.entitybroker.util.http.HttpResponse;
 import org.sakaiproject.genericdao.api.search.Order;
 import org.sakaiproject.genericdao.api.search.Restriction;
 import org.sakaiproject.genericdao.api.search.Search;
-import org.sakaiproject.iclicker.dao.IClickerDao;
-import org.sakaiproject.iclicker.logic.ClickerIdInvalidException.Failure;
-import org.sakaiproject.iclicker.model.ClickerRegistration;
-import org.sakaiproject.iclicker.model.ClickerUserKey;
+import org.sakaiproject.iclicker.api.dao.IClickerDao;
+import org.sakaiproject.iclicker.api.logic.BigRunner;
+import org.sakaiproject.iclicker.exception.ClickerIdInvalidException;
+import org.sakaiproject.iclicker.exception.ClickerLockException;
+import org.sakaiproject.iclicker.exception.ClickerRegisteredException;
+import org.sakaiproject.iclicker.exception.ClickerIdInvalidException.Failure;
+import org.sakaiproject.iclicker.model.Course;
+import org.sakaiproject.iclicker.model.Gradebook;
+import org.sakaiproject.iclicker.model.GradebookItem;
+import org.sakaiproject.iclicker.model.GradebookItemScore;
+import org.sakaiproject.iclicker.model.Student;
+import org.sakaiproject.iclicker.model.User;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
+import org.sakaiproject.iclicker.model.dao.ClickerUserKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -62,7 +72,7 @@ import java.util.Map.Entry;
  */
 public class IClickerLogic {
 
-    private static Log log = LogFactory.getLog(IClickerLogic.class);
+    private static final Logger log = LoggerFactory.getLogger(IClickerLogic.class);
 
     public static String VERSION = "1.5"; // should match the POM version
     public static String VERSION_DATE = "20140906"; // the date in YYYYMMDD
@@ -331,7 +341,7 @@ public class IClickerLogic {
     /**
      * @param sharedKey set and verify the shared key (if invalid, log a warning)
      */
-    protected void setSharedKey(String sharedKey) {
+    public void setSharedKey(String sharedKey) {
         if (sharedKey != null) {
             if (sharedKey.length() < 10) {
                 log.warn("i>clicker shared key ("+sharedKey+") is too short, must be at least 10 chars long. SSO shared key will be ignored until a longer key is entered.");
@@ -1680,7 +1690,7 @@ format.
         return output;
     }
 
-    protected String[] makeClickerIdsAndDates(Collection<ClickerRegistration> regs) {
+    public String[] makeClickerIdsAndDates(Collection<ClickerRegistration> regs) {
         String clickerIds = "";
         String clickerAddedDates = "";
         if (regs != null) {

@@ -16,12 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.model;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * This represents an item in a gradebook and the associated scores
@@ -37,7 +39,7 @@ public class GradebookItem {
     public String type = "internal"; // this is the externalAppName or "internal"
     public boolean released = false;
 
-    public List<GradebookItemScore> scores = new Vector<GradebookItemScore>();
+    public List<GradebookItemScore> scores = new Vector<>();
 
     /**
      * map of score id -> error_key,
@@ -46,16 +48,18 @@ public class GradebookItem {
      */
     public Map<String, String> scoreErrors;
 
-    protected GradebookItem() {}
+    protected GradebookItem() {
+    }
+
     public GradebookItem(String gradebookId, String name) {
         this(gradebookId, name, null, null, null, false);
     }
     public GradebookItem(String gradebookId, String name, Double pointsPossible,
             Date dueDate, String type, boolean released) {
-        if (gradebookId == null || "".equals(gradebookId)) {
+        if (StringUtils.isBlank(gradebookId)) {
             throw new IllegalArgumentException("gradebookId must be set");
         }
-        if (name == null || "".equals(name)) {
+        if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("name must be set");
         }
         this.gradebookId = gradebookId;
@@ -66,7 +70,7 @@ public class GradebookItem {
         if (dueDate != null) {
             this.dueDate = new Date(dueDate.getTime());
         }
-        if (type != null && ! "".equals(type)) {
+        if (StringUtils.isNotBlank(type)) {
             this.type = type;
         }
         this.released = released;
@@ -83,28 +87,39 @@ public class GradebookItem {
         int result = 1;
         result = prime * result + ((gradebookId == null) ? 0 : gradebookId.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
+
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
+
         GradebookItem other = (GradebookItem) obj;
+
         if (gradebookId == null) {
             if (other.gradebookId != null)
                 return false;
-        } else if (!gradebookId.equals(other.gradebookId))
+        } else if (!gradebookId.equals(other.gradebookId)) {
             return false;
+        }
+
         if (name == null) {
-            if (other.name != null)
+            if (other.name != null) {
                 return false;
-        } else if (!name.equals(other.name))
+            }
+        } else if (!name.equals(other.name)) {
             return false;
+        }
+
         return true;
     }
 

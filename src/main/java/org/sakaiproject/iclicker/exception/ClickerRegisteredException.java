@@ -16,26 +16,28 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
-
+package org.sakaiproject.iclicker.exception;
 
 /**
- * Exception which indicates that the lock could not be obtained,
- * most likely because it is already in use
+ * Exception which indicates the clicker is already registered,
+ * contains info about who it is registered to and who tried to 
+ * register it
  * 
  * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
-public class ClickerLockException extends RuntimeException {
+public class ClickerRegisteredException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public String name;
-    public String holder;
+    public String ownerId;
+    public String clickerId;
+    public String registeredOwnerId;
 
-    public ClickerLockException(String message, String name, String holder) {
-        super(message);
-        this.name = name;
-        this.holder = holder;
+    public ClickerRegisteredException(String ownerId, String clickerId, String registeredOwnerId) {
+        super();
+        this.ownerId = ownerId;
+        this.clickerId = clickerId;
+        this.registeredOwnerId = registeredOwnerId;
     }
 
 }

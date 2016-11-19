@@ -32,18 +32,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.entitybus.util.http.HttpAuth;
 import org.sakaiproject.entitybus.util.http.HttpRESTUtils;
-import org.sakaiproject.iclicker.logic.ClickerIdInvalidException;
-import org.sakaiproject.iclicker.logic.ClickerRegisteredException;
-import org.sakaiproject.iclicker.logic.Course;
-import org.sakaiproject.iclicker.logic.Gradebook;
-import org.sakaiproject.iclicker.logic.GradebookItem;
-import org.sakaiproject.iclicker.logic.IClickerLogic;
-import org.sakaiproject.iclicker.logic.Student;
-import org.sakaiproject.iclicker.model.ClickerRegistration;
+import org.sakaiproject.iclicker.exception.ClickerIdInvalidException;
+import org.sakaiproject.iclicker.exception.ClickerRegisteredException;
+import org.sakaiproject.iclicker.impl.logic.IClickerLogic;
+import org.sakaiproject.iclicker.model.Course;
+import org.sakaiproject.iclicker.model.Gradebook;
+import org.sakaiproject.iclicker.model.GradebookItem;
+import org.sakaiproject.iclicker.model.Student;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This servlet will basically take the place of entitybroker in versions of Sakai that do not have
@@ -58,7 +59,7 @@ public class RestServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static Log log = LogFactory.getLog(RestServlet.class);
+    private static Logger log = LoggerFactory.getLogger(RestServlet.class);
 
     private static final String PASSWORD = "_password";
     private static final String LOGIN = "_login";
@@ -76,6 +77,7 @@ public class RestServlet extends HttpServlet {
         if (this.logic == null) {
             this.logic = IClickerLogic.getInstance();
         }
+
         return this.logic;
     }
 
@@ -85,7 +87,7 @@ public class RestServlet extends HttpServlet {
         super.init(config);
         // get the services
         IClickerLogic logic = getLogic();
-        log.debug("IClickerLogic: " + logic);
+        log.debug("IClickerLogic: {}:", logic);
     }
 
     @Override
@@ -94,39 +96,43 @@ public class RestServlet extends HttpServlet {
         // DEFAULT: POST for PUT or POST
         String method = "POST";
         String _method = req.getParameter(COMPENSATE_METHOD);
-        if (_method != null && ! "".equals(_method)) {
+
+        if (StringUtils.isNotBlank(_method)) {
             // Allows override to GET or DELETE
             _method = _method.toUpperCase().trim();
-            if ("GET".equals(_method)) {
+
+            if (StringUtils.equals("GET", _method)) {
                 method = "GET";
-            } else if ("DELETE".equals(_method)) {
+            } else if (StringUtils.equals("DELETE", _method)) {
                 method = "DELETE";
             }
         }
+
         handle(req, resp, method);
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
-            IOException {
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // treat PUT as POST
         doPost(req, resp);
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
-            IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         handle(req, resp, "GET");
     }
 
     @SuppressWarnings("unchecked")
-    protected void handle(HttpServletRequest req, HttpServletResponse res, String method) 
-            throws ServletException, IOException {
+    protected void handle(HttpServletRequest req, HttpServletResponse res, String method) throws ServletException, IOException {
         // force all response encoding to UTF-8 / XML by default
         res.setCharacterEncoding("UTF-8");
         // get the path
         String path = req.getPathInfo();
-        if (path == null) { path = ""; }
+
+        if (path == null) {
+            path = "";
+        }
+
         String[] segments = HttpRESTUtils.getPathSegments(path);
 
         // init the vars to success
@@ -135,18 +141,14 @@ public class RestServlet extends HttpServlet {
         String output = "";
 
         // check to see if this is one of the paths we understand
-        if (path == null 
-                || "".equals(path) 
-                || segments.length == 0) {
+        if (StringUtils.isBlank(path) || segments.length == 0) {
             valid = false;
             output = "Unknown path ("+path+") specified"; 
             status = HttpServletResponse.SC_NOT_FOUND;
         }
 
         // check the method is allowed
-        if (valid 
-                && ! "POST".equals(method) 
-                && ! "GET".equals(method)) {
+        if (valid && !StringUtils.equals("POST", method) && !StringUtils.equals("GET", method)) {
             valid = false;
             output = "Only POST and GET methods are supported";
             status = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
@@ -159,6 +161,7 @@ public class RestServlet extends HttpServlet {
             String pathSeg1 = HttpRESTUtils.getPathSegment(path, 1);
 
             boolean restDebug = false;
+
             if (req.getParameter("_debug") != null || logic.forceRestDebugging) {
                 restDebug = true;
                 StringBuilder sb = new StringBuilder();

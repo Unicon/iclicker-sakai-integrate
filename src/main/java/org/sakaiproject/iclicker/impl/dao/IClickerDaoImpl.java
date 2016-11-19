@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.dao;
+package org.sakaiproject.iclicker.impl.dao;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.dialect.Dialect;
@@ -25,7 +25,8 @@ import org.hibernate.dialect.Oracle10gDialect;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.sakaiproject.genericdao.api.search.Search;
 import org.sakaiproject.genericdao.hibernate.HibernateGeneralGenericDao;
-import org.sakaiproject.iclicker.model.ClickerLock;
+import org.sakaiproject.iclicker.api.dao.IClickerDao;
+import org.sakaiproject.iclicker.model.dao.ClickerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

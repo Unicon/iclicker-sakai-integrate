@@ -32,75 +32,81 @@ import org.sakaiproject.component.cover.ServerConfigurationService;
             <version>10</version>
         </dependency>
  */
-public class CSSUtils
-{
+public class CSSUtils {
 
-	private static final String PORTAL_SKIN_NEOPREFIX_PROPERTY = "portal.neoprefix";
-	private static final String PORTAL_SKIN_NEOPREFIX_DEFAULT = "neo-";
+    private static final String PORTAL_SKIN_NEOPREFIX_PROPERTY = "portal.neoprefix";
+    private static final String PORTAL_SKIN_NEOPREFIX_DEFAULT = "neo-";
 
-	/**
-	 * Returns a URL for the tool_base.css suitable for putting in an href= field.
-	 *
-	 * @return <code>cssToolBase</code> URL for the tool_base.css
-	 */
-	public static String getCssToolBase() 
-	{
-		String skinRepo = ServerConfigurationService.getString("skin.repo");
-		String cssToolBase = skinRepo + "/tool_base.css";
-		return cssToolBase;
-	}
+    /**
+     * Returns a URL for the tool_base.css suitable for putting in an href=
+     * field.
+     *
+     * @return <code>cssToolBase</code> URL for the tool_base.css
+     */
+    public static String getCssToolBase() {
+        String skinRepo = ServerConfigurationService.getString("skin.repo");
+        String cssToolBase = skinRepo + "/tool_base.css";
 
-	/**
-	 * Captures the (yes) overly complex rules for the skin folder naming convention
-	 *
-	 * @param <code>skinFolder</code>
-	 *		The folder where the skins are to be found.
-	 * @return <code>skinFolder</code> The adjusted folder where the skins can be found.
-	 */
-	public static String adjustCssSkinFolder(String skinFolder)
-	{
-		if (skinFolder == null)
-		{
-			skinFolder = ServerConfigurationService.getString("skin.default");
-			if ( skinFolder == null ) skinFolder = ""; // Not likely - not good if it happens
-		}
+        return cssToolBase;
+    }
 
-		String prefix = ServerConfigurationService.getString(PORTAL_SKIN_NEOPREFIX_PROPERTY, PORTAL_SKIN_NEOPREFIX_DEFAULT);
-		if (prefix == null) prefix = "";
+    /**
+     * Captures the (yes) overly complex rules for the skin folder naming
+     * convention
+     *
+     * @param <code>skinFolder</code>
+     *            The folder where the skins are to be found.
+     * @return <code>skinFolder</code> The adjusted folder where the skins can
+     *         be found.
+     */
+    public static String adjustCssSkinFolder(String skinFolder) {
+        if (skinFolder == null) {
+            skinFolder = ServerConfigurationService.getString("skin.default");
 
-		String templates = ServerConfigurationService.getString("portal.templates", "neoskin");
+            if (skinFolder == null) {
+                skinFolder = ""; // Not likely - not good if it happens
+            }
+        }
 
-		if ( "neoskin".equals(templates) && !skinFolder.startsWith(prefix) ) skinFolder = prefix + skinFolder;
-		return skinFolder;
-	}
+        String prefix = ServerConfigurationService.getString(PORTAL_SKIN_NEOPREFIX_PROPERTY, PORTAL_SKIN_NEOPREFIX_DEFAULT);
+        if (prefix == null) {
+            prefix = "";
+        }
 
-	/**
-	 * Returns a URL for the tool.css suitable for putting in an href= field.
-	 *
-	 * @param <code>skinFolder</code>
-	 *		where the tool.css skin lives for this site.
-	 * @return <code>cssToolSkin</code> URL for the tool.css
-	 */
-	public static String getCssToolSkin(String skinFolder)
-	{
-		skinFolder = adjustCssSkinFolder(skinFolder);
-		String skinRepo = ServerConfigurationService.getString("skin.repo");
-		String cssToolSkin = skinRepo + "/" + skinFolder + "/tool.css";
-		return cssToolSkin;
-	}
+        String templates = ServerConfigurationService.getString("portal.templates", "neoskin");
 
-	/**
-	 * Returns a URL for the tool.css suitable for putting in an href= field.
-	 *
-	 * @param <code>site</code>
-	 *		The site for this tool.
-	 * @return <code>cssToolSkin</code> URL for the tool.css
-	 */
-	public static String getCssToolSkin(Site site)
-	{
-		String skinFolder = site.getSkin();
-		return getCssToolSkin(skinFolder);
-	}
+        if ("neoskin".equals(templates) && !skinFolder.startsWith(prefix)) {
+            skinFolder = prefix + skinFolder;
+        }
+
+        return skinFolder;
+    }
+
+    /**
+     * Returns a URL for the tool.css suitable for putting in an href= field.
+     *
+     * @param <code>skinFolder</code>
+     *            where the tool.css skin lives for this site.
+     * @return <code>cssToolSkin</code> URL for the tool.css
+     */
+    public static String getCssToolSkin(String skinFolder) {
+        skinFolder = adjustCssSkinFolder(skinFolder);
+        String skinRepo = ServerConfigurationService.getString("skin.repo");
+        String cssToolSkin = skinRepo + "/" + skinFolder + "/tool.css";
+
+        return cssToolSkin;
+    }
+
+    /**
+     * Returns a URL for the tool.css suitable for putting in an href= field.
+     *
+     * @param <code>site</code>
+     *            The site for this tool.
+     * @return <code>cssToolSkin</code> URL for the tool.css
+     */
+    public static String getCssToolSkin(Site site) {
+        String skinFolder = site.getSkin();
+        return getCssToolSkin(skinFolder);
+    }
 
 }
-

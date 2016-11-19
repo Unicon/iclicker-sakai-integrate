@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.impl.logic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,9 +24,15 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.sakaiproject.iclicker.dao.IClickerDao;
+import org.sakaiproject.iclicker.api.dao.IClickerDao;
+import org.sakaiproject.iclicker.exception.ClickerIdInvalidException;
+import org.sakaiproject.iclicker.impl.logic.AbstractExternalLogic;
+import org.sakaiproject.iclicker.impl.logic.IClickerLogic;
 import org.sakaiproject.iclicker.logic.stubs.ExternalLogicStub;
-import org.sakaiproject.iclicker.model.ClickerRegistration;
+import org.sakaiproject.iclicker.model.Gradebook;
+import org.sakaiproject.iclicker.model.GradebookItem;
+import org.sakaiproject.iclicker.model.GradebookItemScore;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
 import org.springframework.test.AbstractTransactionalSpringContextTests;
 
 /**

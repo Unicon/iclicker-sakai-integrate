@@ -16,9 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.impl.logic;
 
 import java.util.Observable;
+
+import org.sakaiproject.iclicker.api.logic.BigRunner;
 
 
 

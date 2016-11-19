@@ -17,11 +17,11 @@
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.model;
 
 import java.util.Set;
 
-import org.sakaiproject.iclicker.model.ClickerRegistration;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
 
 /**
  * Represents a student in the course gradebook, this only makes sense in the context of a course or

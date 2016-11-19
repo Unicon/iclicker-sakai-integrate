@@ -17,7 +17,7 @@
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.sakaiproject.iclicker.model;
+package org.sakaiproject.iclicker.model.dao;
 
 import java.io.Serializable;
 import java.util.Date;

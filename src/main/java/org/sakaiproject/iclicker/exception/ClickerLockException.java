@@ -16,27 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.exception;
 
-import java.util.Observable;
 
 /**
- * Special class for handling long running operations
+ * Exception which indicates that the lock could not be obtained,
+ * most likely because it is already in use
  * 
  * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
-public interface BigRunner extends Runnable {
-    public static final String RUNNER_TYPE_ADD = "add";
-    public static final String RUNNER_TYPE_REMOVE = "remove";
-    public static final String RUNNER_TYPE_SYNC = "sync";
-    public static final String RUNNER_LOCK = "bigRunnerLock";
+public class ClickerLockException extends RuntimeException {
 
-    public int getTotalItems();
-    public int getItemsCompleted();
-    public int getPercentCompleted();
-    public boolean isComplete();
-    public boolean isError();
-    public void setFailure(Exception e);
-    public String getType();
-    public Observable getObservable();
+    private static final long serialVersionUID = 1L;
+
+    public String name;
+    public String holder;
+
+    public ClickerLockException(String message, String name, String holder) {
+        super(message);
+        this.name = name;
+        this.holder = holder;
+    }
+
 }

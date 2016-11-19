@@ -29,6 +29,7 @@ import java.util.Map;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.azeckoski.reflectutils.ConversionUtils;
 import org.azeckoski.reflectutils.transcoders.JSONTranscoder;
 import org.azeckoski.reflectutils.transcoders.XMLTranscoder;
@@ -53,90 +54,100 @@ import org.sakaiproject.entitybroker.entityprovider.search.Restriction;
 import org.sakaiproject.entitybroker.entityprovider.search.Search;
 import org.sakaiproject.entitybroker.exception.EntityException;
 import org.sakaiproject.entitybroker.util.AbstractEntityProvider;
-import org.sakaiproject.iclicker.logic.ClickerIdInvalidException;
-import org.sakaiproject.iclicker.logic.Course;
-import org.sakaiproject.iclicker.logic.ExternalLogic;
-import org.sakaiproject.iclicker.logic.Gradebook;
-import org.sakaiproject.iclicker.logic.GradebookItem;
-import org.sakaiproject.iclicker.logic.GradebookItemScore;
-import org.sakaiproject.iclicker.logic.IClickerLogic;
-import org.sakaiproject.iclicker.logic.Student;
-import org.sakaiproject.iclicker.model.ClickerRegistration;
+import org.sakaiproject.iclicker.exception.ClickerIdInvalidException;
+import org.sakaiproject.iclicker.impl.logic.IClickerLogic;
+import org.sakaiproject.iclicker.impl.logic.ExternalLogic;
+import org.sakaiproject.iclicker.model.Course;
+import org.sakaiproject.iclicker.model.Gradebook;
+import org.sakaiproject.iclicker.model.GradebookItem;
+import org.sakaiproject.iclicker.model.GradebookItemScore;
+import org.sakaiproject.iclicker.model.Student;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
+
+import lombok.Setter;
 
 /**
  * iClicker REST handler <br/>
  * This handles all the RESTful endpoint and data feed generation for the application
  * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class IClickerEntityProvider extends AbstractEntityProvider implements EntityProvider,
         Createable, Resolvable, CollectionResolvable, Outputable, Inputable, Describeable,
         ActionsExecutable, Redirectable, RequestAware {
 
-    public static String PREFIX = "iclicker";
-    public static String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+    public static final String PREFIX = "iclicker";
+    public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+
+    @Setter private IClickerLogic logic;
+    @Setter private ExternalLogic externalLogic;
+    @Setter protected RequestGetter requestGetter;
 
     // custom actions
 
     @EntityCustomAction(action = "courses", viewKey = EntityView.VIEW_LIST)
     public ActionReturn getInstructorCourses(EntityView view) {
         String userId = externalLogic.getCurrentUserId();
+
         if (userId == null) {
-            throw new SecurityException(
-                    "Only logged in users can access instructor courses listings");
+            throw new SecurityException("Only logged in users can access instructor courses listings");
         }
+
         String courseId = view.getPathSegment(2);
         List<Course> courses = logic.getCoursesForInstructorWithStudents(courseId);
+
         if (courses.isEmpty()) {
-            throw new SecurityException(
-                    "Only instructors can access instructor courses listings");
+            throw new SecurityException("Only instructors can access instructor courses listings");
         }
+
         Object toEncode;
-        //String xmlName = "courses";
+
         if (courseId != null) {
             // get a single course and the students
-            //xmlName = "course";
             toEncode = courses.get(0);
         } else {
             toEncode = courses;
         }
+
         // do the encoding manually
         ActionReturn ar;
+
         if (Formats.JSON.equals(view.getFormat())) {
             String out = JSONTranscoder.makeJSON(toEncode, null, false, false, false, 6, null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.JSON_MIME_TYPE;
         } else {
             // using the iclicker specific XML format
-            String out = XML_HEADER
-                    + logic.encodeCourses(userId, courses);
-            //String out = XML_HEADER
-            //  + XMLTranscoder.makeXML(toEncode, xmlName, null, false, false, false, false, 6);
+            String out = XML_HEADER + logic.encodeCourses(userId, courses);
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
         }
+
         return ar;
     }
 
     @EntityCustomAction(action = "students", viewKey = EntityView.VIEW_LIST)
     public ActionReturn getCourseStudents(EntityView view) {
         String courseId = view.getPathSegment(2);
+
         if (courseId == null) {
-            throw new IllegalArgumentException(
-                    "valid courseId must be included in the URL /iclicker/students/{courseId}");
+            throw new IllegalArgumentException("valid courseId must be included in the URL /iclicker/students/{courseId}");
         }
+
         String userId = externalLogic.getCurrentUserId();
+
         if (userId == null) {
-            throw new SecurityException(
-                    "Only logged in users can access student enrollment listings");
+            throw new SecurityException("Only logged in users can access student enrollment listings");
         }
+
         if (!externalLogic.isUserAdmin(userId) && !externalLogic.isUserInstructor(userId)) {
             throw new SecurityException("Only instructors can access course students listing");
         }
+
         List<Student> students = logic.getStudentsForCourseWithClickerReg(courseId);
         // do the encoding manually
         ActionReturn ar;
-        if (Formats.JSON.equals(view.getFormat())) {
+
+        if (StringUtils.equals(Formats.JSON, view.getFormat())) {
             String out = JSONTranscoder.makeJSON(students, null, false, false, false, 4, null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.JSON_MIME_TYPE;
@@ -150,50 +161,56 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
         }
+
         return ar;
     }
 
     @EntityCustomAction(action = "gradebook", viewKey = EntityView.VIEW_LIST)
     public ActionReturn getCourseGradebook(EntityView view) {
         String courseId = view.getPathSegment(2);
+
         if (courseId == null) {
-            throw new IllegalArgumentException(
-                    "valid courseId must be included in the URL /iclicker/gradebook/{courseId}");
+            throw new IllegalArgumentException("valid courseId must be included in the URL /iclicker/gradebook/{courseId}");
         }
+
         String userId = externalLogic.getCurrentUserId();
+
         if (userId == null) {
-            throw new SecurityException(
-                    "Only logged in users can access instructor courses listings");
+            throw new SecurityException("Only logged in users can access instructor courses listings");
         }
+
         if (!externalLogic.isUserAdmin(userId) && !externalLogic.isUserInstructor(userId)) {
             throw new SecurityException("Only instructors can access course gradebook");
         }
+
         Gradebook gradebook = logic.getCourseGradebook(courseId, null);
         // do the encoding manually
         ActionReturn ar;
-        if (Formats.JSON.equals(view.getFormat())) {
+
+        if (StringUtils.equals(Formats.JSON, view.getFormat())) {
             String out = JSONTranscoder.makeJSON(gradebook, null, false, false, false, 6, null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.JSON_MIME_TYPE;
         } else {
             // use the iclicker XML format
             String out = XML_HEADER + logic.encodeGradebook(gradebook);
-            //String out = XML_HEADER
-            // + XMLTranscoder.makeXML(gradebook, "gradebook", null, false, false, false, false, 6);
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
         }
+
         return ar;
     }
 
     @EntityCustomAction(action = "validate", viewKey = EntityView.VIEW_NEW)
     public ActionReturn validateClickerId(EntityView view) {
         String clickerId = view.getPathSegment(2);
+
         if (clickerId == null) {
-            throw new IllegalArgumentException(
-                    "valid clickerId must be included in the URL /iclicker/validate/{clickerId}");
+            throw new IllegalArgumentException("valid clickerId must be included in the URL /iclicker/validate/{clickerId}");
         }
-        HashMap<String, Object> m = new HashMap<String, Object>();
+
+        HashMap<String, Object> m = new HashMap<>();
+
         try {
             clickerId = logic.validateClickerId(clickerId);
             m.put("valid", true);
@@ -201,45 +218,52 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             m.put("failure", e.failure.name());
             m.put("valid", false);
         }
+
         m.put("clickerId", clickerId);
         // do the encoding manually
         ActionReturn ar;
-        if (Formats.JSON.equals(view.getFormat())) {
+
+        if (StringUtils.equals(Formats.JSON, view.getFormat())) {
             String out = JSONTranscoder.makeJSON(m, null, false, false, false, 2, null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.JSON_MIME_TYPE;
         } else {
-            String out = XML_HEADER
-                    + XMLTranscoder.makeXML(m, "validate", null, false, false, false, false, 2, null);
+            String out = XML_HEADER + XMLTranscoder.makeXML(m, "validate", null, false, false, false, false, 2, null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
         }
+
         if (m.containsKey("failure")) {
             // failure also indicated with a 404
             ar.responseCode = HttpServletResponse.SC_BAD_REQUEST;
         }
+
         return ar;
     }
 
     @EntityCustomAction(action = "activate", viewKey = EntityView.VIEW_EDIT)
     public int activateClicker(EntityView view, EntityReference ref) {
         ClickerRegistration cr = findClickerRegistration(ref.getId());
+
         if (cr == null) {
-            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")",
-                    "/activate", HttpServletResponse.SC_BAD_REQUEST);
+            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")", "/activate", HttpServletResponse.SC_BAD_REQUEST);
         }
+
         logic.setRegistrationActive(cr.getId(), true);
+
         return HttpServletResponse.SC_NO_CONTENT;
     }
 
     @EntityCustomAction(action = "deactivate", viewKey = EntityView.VIEW_EDIT)
     public int deactivateClicker(EntityView view, EntityReference ref) {
         ClickerRegistration cr = findClickerRegistration(ref.getId());
+
         if (cr == null) {
-            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")",
-                    "/deactivate", HttpServletResponse.SC_BAD_REQUEST);
+            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")", "/deactivate", HttpServletResponse.SC_BAD_REQUEST);
         }
+
         logic.setRegistrationActive(cr.getId(), false);
+
         return HttpServletResponse.SC_NO_CONTENT;
     }
 
@@ -247,48 +271,59 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
     @SuppressWarnings("unchecked")
     public ActionReturn handleGradeItem(EntityView view) {
         String courseId = view.getPathSegment(2);
+
         if (courseId == null) {
-            throw new IllegalArgumentException(
-                    "valid courseId must be included in the URL /iclicker/gradeitem/{courseId}");
+            throw new IllegalArgumentException("valid courseId must be included in the URL /iclicker/gradeitem/{courseId}");
         }
+
         String userId = externalLogic.getCurrentUserId();
+
         if (userId == null) {
-            throw new SecurityException(
-                    "Only logged in users can access instructor courses listings");
+            throw new SecurityException("Only logged in users can access instructor courses listings");
         }
+
         if (!externalLogic.isUserAdmin(userId) && !externalLogic.isUserInstructor(userId)) {
             throw new SecurityException("Only instructors can access course gradebook");
         }
+
         GradebookItem gbItemOut;
-        if (Method.GET.toString().equalsIgnoreCase(view.getMethod())) {
+
+        if (StringUtils.equalsIgnoreCase(Method.GET.toString(), view.getMethod())) {
             String gradeItemName = view.getPathSegment(3);
+
             if (gradeItemName == null) {
-                throw new IllegalArgumentException(
-                        "valid gbItemName must be included in the URL /iclicker/gradeitem/{courseId}/{gradeItemName}");
+                throw new IllegalArgumentException("valid gbItemName must be included in the URL /iclicker/gradeitem/{courseId}/{gradeItemName}");
             }
+
             Gradebook gb = logic.getCourseGradebook(courseId, gradeItemName);
             gbItemOut = gb.items.get(0);
-        } else if (Method.POST.toString().equalsIgnoreCase(view.getMethod())
-                || Method.PUT.toString().equalsIgnoreCase(view.getMethod())) {
+        } else if (StringUtils.equalsIgnoreCase(Method.POST.toString(), view.getMethod()) || StringUtils.equalsIgnoreCase(Method.PUT.toString(), view.getMethod())) {
             ServletRequest request = requestGetter.getRequest();
+
             if (request == null) {
                 throw new IllegalStateException("Cannot get request to read data from");
             }
+
             String inputData;
+
             try {
                 inputData = readerToString(request.getReader());
             } catch (IOException e) {
                 throw new RuntimeException("Failed to read the data from the request: " + e);
             }
-            if (inputData == null || "".equals(inputData)) {
+
+            if (StringUtils.isBlank(inputData)) {
                 throw new IllegalStateException("Must include the grade item and grades data for input (sent nothing)");
             }
+
             Map<String, Object> input;
-            if (Formats.JSON.equals(view.getFormat())) {
+
+            if (StringUtils.equals(Formats.JSON, view.getFormat())) {
                 input = new JSONTranscoder().decode(inputData);
             } else {
                 input = new XMLTranscoder().decode(inputData);
             }
+
             // loop through and get the data out and put it into a gradeitem
             ConversionUtils cvu = ConversionUtils.getInstance();
             String gbItemName = (String) input.get("name");
@@ -296,28 +331,31 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             gbItemIn.pointsPossible = cvu.convert(input.get("pointsPossible"), Double.class);
             gbItemIn.dueDate = cvu.convert(input.get("dueDate"), Date.class);
             List<Object> scores = cvu.convert(input.get("scores"), List.class);
+
             if (scores != null) {
                 for (Object o : scores) {
                     GradebookItemScore score = cvu.convert(o, GradebookItemScore.class);
                     gbItemIn.scores.add( score );
                 }
             }
+
             gbItemOut = logic.saveGradebookItem(gbItemIn);
         } else {
             throw new EntityException("Method ("+view.getMethod()+") not supported", "iclicker/gradeitem", HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         }
+
         // do the encoding manually
         ActionReturn ar;
-        if (Formats.JSON.equals(view.getFormat())) {
+        if (StringUtils.equals(Formats.JSON, view.getFormat())) {
             String out = JSONTranscoder.makeJSON(gbItemOut, null, false, false, false, 6, null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.JSON_MIME_TYPE;
         } else {
-            String out = XML_HEADER
-                    + XMLTranscoder.makeXML(gbItemOut, "gradeitem", null, false, false, false, false, 6, null);
+            String out = XML_HEADER + XMLTranscoder.makeXML(gbItemOut, "gradeitem", null, false, false, false, false, 6, null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
         }
+
         return ar;
     }
 
@@ -331,11 +369,14 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         if (ref.getId() == null) {
             return new ClickerRegistration();
         }
+
         ClickerRegistration entity;
         entity = findClickerRegistration(ref.getId());
+
         if (entity != null) {
             return entity;
         }
+
         throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
@@ -349,6 +390,7 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
     private ClickerRegistration findClickerRegistration(String id) {
         ClickerRegistration entity;
         Long lid = Long.getLong(id);
+
         if (lid == null || lid > 999999) {
             // lookup by clickerId
             entity = logic.getItemByClickerId(id);
@@ -356,14 +398,17 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             // lookup by lid
             entity = logic.getItemById(lid);
         }
+
         return entity;
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
         String locationId = null;
         String userId = getCurrentUser();
+
         if (search != null) {
             Restriction restriction = search.getRestrictionByProperty("locationId");
+
             if (restriction != null) {
                 locationId = restriction.property;
             } else {
@@ -372,14 +417,17 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
                     locationId = restriction.property;
                 }
             }
+
             if (externalLogic.isUserAdmin(getCurrentUser())) {
                 // allowed to lookup for other users
                 Restriction r = search.getRestrictionByProperty("userId");
+
                 if (r != null) {
                     userId = r.property;
                 }
             }
         }
+
         return logic.getAllVisibleItems(userId, locationId);
     }
 
@@ -389,9 +437,11 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
 
     public String createEntity(EntityReference ref, Object entity, Map<String, Object> params) {
         String clickerId = ref.getId();
+
         if (clickerId == null) {
             clickerId = (String) params.get("clickerId");
         }
+
         return registerClicker(clickerId);
     }
 
@@ -417,16 +467,17 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
     }
 
     public String[] getHandledOutputFormats() {
-        return new String[] { Formats.XML, Formats.JSON };
+        return new String[] {Formats.XML, Formats.JSON};
     }
 
     public String[] getHandledInputFormats() {
-        return new String[] { Formats.HTML, Formats.XML, Formats.JSON };
+        return new String[] {Formats.HTML, Formats.XML, Formats.JSON};
     }
 
     public static String readerToString(BufferedReader br) {
         StringBuilder sb = new StringBuilder();
         String line;
+
         try {
             while ((line = br.readLine()) != null) {
                 sb.append(line);
@@ -438,28 +489,10 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             try {
                 br.close();
             } catch (IOException e) {
-                // oh well
             }
         }
+
         return sb.toString();
-    }
-
-    private IClickerLogic logic;
-
-    public void setLogic(IClickerLogic logic) {
-        this.logic = logic;
-    }
-
-    private ExternalLogic externalLogic;
-
-    public void setExternalLogic(ExternalLogic externalLogic) {
-        this.externalLogic = externalLogic;
-    }
-
-    protected RequestGetter requestGetter;
-
-    public void setRequestGetter(RequestGetter requestGetter) {
-        this.requestGetter = requestGetter;
     }
 
 }

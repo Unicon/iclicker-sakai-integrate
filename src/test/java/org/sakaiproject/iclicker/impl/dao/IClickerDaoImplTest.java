@@ -16,15 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.dao;
+package org.sakaiproject.iclicker.impl.dao;
 
 import junit.framework.Assert;
 
 import org.sakaiproject.genericdao.api.search.Restriction;
 import org.sakaiproject.genericdao.api.search.Search;
-import org.sakaiproject.iclicker.logic.FakeDataPreload;
-import org.sakaiproject.iclicker.model.ClickerRegistration;
-import org.sakaiproject.iclicker.model.ClickerUserKey;
+import org.sakaiproject.iclicker.api.dao.IClickerDao;
+import org.sakaiproject.iclicker.impl.logic.FakeDataPreload;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
+import org.sakaiproject.iclicker.model.dao.ClickerUserKey;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.AbstractTransactionalSpringContextTests;
 
