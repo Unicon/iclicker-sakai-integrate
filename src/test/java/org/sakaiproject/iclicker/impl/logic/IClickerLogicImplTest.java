@@ -62,14 +62,14 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
     protected void onSetUpInTransaction() {
         // load the spring created dao class bean from the Spring Application Context
         IClickerDao dao = (IClickerDao) applicationContext
-                .getBean("org.sakaiproject.iclicker.dao.IClickerDao");
+                .getBean("org.sakaiproject.iclicker.api.dao.IClickerDao");
         if (dao == null) {
             throw new NullPointerException("DAO could not be retrieved from spring context");
         }
 
         // load up the test data preloader from spring
         tdp = (FakeDataPreload) applicationContext
-                .getBean("org.sakaiproject.iclicker.logic.test.FakeDataPreload");
+                .getBean("org.sakaiproject.iclicker.impl.logic.test.FakeDataPreload");
         if (tdp == null) {
             throw new NullPointerException(
                     "FakeDataPreload could not be retrieved from spring context");
@@ -125,60 +125,6 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         assertTrue(logicImpl.canWriteItem(tdp.maintitem, FakeDataPreload.ADMIN_USER_ID));
         assertTrue(logicImpl.canWriteItem(tdp.item1, FakeDataPreload.ADMIN_USER_ID));
     }
-
-    /* ignoring this test for now
-    public void ignoretestGetAllVisibleItems() {
-
-        // add 2 items to test if we can see the visible one and not the hidden one
-        ClickerRegistration itemMaint = new ClickerRegistration("MMMM2222",
-                FakeDataPreload.MAINT_USER_ID);
-        logicImpl.saveItem(itemMaint);
-
-        List<ClickerRegistration> l = logicImpl.getAllVisibleItems(FakeDataPreload.USER_ID,
-                FakeDataPreload.LOCATION1_ID); // test normal user
-        assertNotNull(l);
-        assertEquals(3, l.size());
-        assertTrue(l.contains(tdp.item1));
-        assertTrue(l.contains(tdp.item2));
-        assertTrue(l.contains(tdp.item3));
-        assertTrue(!l.contains(tdp.accessitem));
-        assertTrue(!l.contains(tdp.maintitem));
-        assertTrue(!l.contains(tdp.adminitem));
-        assertTrue(!l.contains(itemMaint));
-
-        List<ClickerRegistration> laccess = logicImpl.getAllVisibleItems(
-                FakeDataPreload.USER_ID, FakeDataPreload.LOCATION1_ID); // test normal user
-        assertNotNull(laccess);
-        assertEquals(3, laccess.size());
-        assertTrue(laccess.contains(tdp.item1));
-        assertTrue(laccess.contains(tdp.item2));
-        assertTrue(laccess.contains(tdp.item3));
-        assertTrue(!laccess.contains(tdp.accessitem));
-        assertTrue(!laccess.contains(tdp.maintitem));
-        assertTrue(!laccess.contains(tdp.adminitem));
-        assertTrue(!laccess.contains(itemMaint));
-
-        List<ClickerRegistration> lmaintain = logicImpl.getAllVisibleItems(
-                FakeDataPreload.MAINT_USER_ID, FakeDataPreload.LOCATION1_ID); // test maintainer
-        assertNotNull(lmaintain);
-        assertEquals(2, lmaintain.size());
-        assertTrue(!lmaintain.contains(tdp.item1));
-        assertTrue(!lmaintain.contains(tdp.item2));
-        assertTrue(!lmaintain.contains(tdp.item3));
-        assertTrue(!lmaintain.contains(tdp.accessitem));
-        assertTrue(lmaintain.contains(tdp.maintitem));
-        assertTrue(!lmaintain.contains(tdp.adminitem));
-        assertTrue(lmaintain.contains(itemMaint));
-
-        List<ClickerRegistration> ladmin = logicImpl.getAllVisibleItems(
-                FakeDataPreload.ADMIN_USER_ID, FakeDataPreload.LOCATION1_ID); // test admin
-        assertNotNull(ladmin);
-        assertEquals(5, ladmin.size());
-        assertTrue(ladmin.contains(tdp.item1));
-        assertTrue(!ladmin.contains(tdp.item2));
-        assertTrue(ladmin.contains(itemMaint));
-    }
-    */
 
     public void testRemoveItem() {
         try {
@@ -410,10 +356,10 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
     public void testDecodeGradebookXML() {
         // fully complete XML with 3 items and 3 students
         String xml = "<coursegradebook courseid='course-id-111'> " +
-        		"<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
-        		"<user id='student2' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> " +
-        		"<user id='student3' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='63.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='33.0'/> </user> " +
-        		"</coursegradebook>";
+                "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
+                "<user id='student2' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> " +
+                "<user id='student3' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='63.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='33.0'/> </user> " +
+                "</coursegradebook>";
         Gradebook gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
         assertNotNull(gb.items);
@@ -440,8 +386,8 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
 
         // try XML with varying completeness
         xml = "<coursegradebook courseid='course-id-111'> " +
-        		"<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
-        		"<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> </coursegradebook>";
+                "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
+                "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> </coursegradebook>";
         gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
         assertNotNull(gb.items);
@@ -455,11 +401,11 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
 
         // mixed order
         xml = "<coursegradebook courseid='course-id-111'> " +
-        		"<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> </user> " +
-        		"<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 3' pointspossible='100' type='internal' score='91.0'/> </user> " +
-        		"<user id='student3' usertype='S'> <lineitem name='item 3' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 4' pointspossible='100' type='internal' score='63.0'/> </user> " +
-        		"<user id='student4' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='100.0'/> <lineitem name='item 1' pointspossible='100' type='internal' score='100.0'/> </user> " +
-        		"</coursegradebook>";
+                "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> </user> " +
+                "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 3' pointspossible='100' type='internal' score='91.0'/> </user> " +
+                "<user id='student3' usertype='S'> <lineitem name='item 3' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 4' pointspossible='100' type='internal' score='63.0'/> </user> " +
+                "<user id='student4' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='100.0'/> <lineitem name='item 1' pointspossible='100' type='internal' score='100.0'/> </user> " +
+                "</coursegradebook>";
         gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
         assertNotNull(gb.items);
@@ -476,8 +422,8 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         try {
             // no courseid
             xml = "<coursegradebook > " +
-            		"<user id='student1' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
-            		"</coursegradebook>";
+                    "<user id='student1' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
+                    "</coursegradebook>";
             //noinspection UnusedAssignment,UnusedAssignment
             gb = logicImpl.decodeGradebookXML(xml);
             fail("Should have thrown NullPointerException");
@@ -630,20 +576,6 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         encodedKey = Hex.encodeHexString(sha1Bytes) + "|" + timestamp;
         boolean result = logicImpl.verifyKey(encodedKey);
         assertTrue(result);
-        //System.out.println("key: "+key+" , encoded: "+encodedKey);
-
-        // for testing other keys
-        /*
-        key = "66f3b80a-96b5-41c0-a2fb-1d0b17aec523";
-        logicImpl.setSharedKey(key);
-        //timestamp = System.currentTimeMillis() / 1000l;
-        timestamp = 1333495162;
-        sha1Bytes = DigestUtils.sha(key + ":" + timestamp);
-        encodedKey = Hex.encodeHexString(sha1Bytes) + "|" + timestamp;
-        result = logicImpl.verifyKey(encodedKey);
-        System.out.println("key: "+key+", timestamp: "+timestamp+", encoded: "+encodedKey+", result="+result);
-        assertTrue(result);
-        */
     }
 
 }

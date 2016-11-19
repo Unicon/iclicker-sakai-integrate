@@ -25,7 +25,6 @@ import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
 
 /**
  * Contains test data for preloading and test constants
- * @author Sakai App Builder -AZ
  */
 public class FakeDataPreload {
 

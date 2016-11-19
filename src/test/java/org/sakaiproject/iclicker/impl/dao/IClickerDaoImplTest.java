@@ -63,14 +63,14 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
     // run this before each test starts and as part of the transaction
     protected void onSetUpInTransaction() {
         // load the spring created dao class bean from the Spring Application Context
-        dao = (IClickerDao) applicationContext.getBean("org.sakaiproject.iclicker.dao.IClickerDao");
+        dao = (IClickerDao) applicationContext.getBean("org.sakaiproject.iclicker.api.dao.IClickerDao");
         if (dao == null) {
             throw new NullPointerException("DAO could not be retrieved from spring context");
         }
 
         // load up the test data preloader from spring
         tdp = (FakeDataPreload) applicationContext
-                .getBean("org.sakaiproject.iclicker.logic.test.FakeDataPreload");
+                .getBean("org.sakaiproject.iclicker.impl.logic.test.FakeDataPreload");
         if (tdp == null) {
             throw new NullPointerException(
                     "FakeDataPreload could not be retrieved from spring context");

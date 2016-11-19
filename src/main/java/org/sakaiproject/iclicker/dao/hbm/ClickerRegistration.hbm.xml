@@ -25,7 +25,7 @@
 <hibernate-mapping>
     <!-- put your value object in the class name,
         the table name is optional but you should specify it to avoid collisions -->
-    <class name="org.sakaiproject.iclicker.model.ClickerRegistration"
+    <class name="org.sakaiproject.iclicker.model.dao.ClickerRegistration"
            table="ICLICKER_REGISTRATION">
 
         <!-- create the primary key id, using native is typically the best way -->
