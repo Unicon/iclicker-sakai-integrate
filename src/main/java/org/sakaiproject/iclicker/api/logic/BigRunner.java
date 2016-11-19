@@ -23,7 +23,6 @@ import java.util.Observable;
 /**
  * Special class for handling long running operations
  * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public interface BigRunner extends Runnable {
     public static final String RUNNER_TYPE_ADD = "add";
@@ -39,4 +38,5 @@ public interface BigRunner extends Runnable {
     public void setFailure(Exception e);
     public String getType();
     public Observable getObservable();
+
 }

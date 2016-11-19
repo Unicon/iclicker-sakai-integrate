@@ -70,8 +70,6 @@ import lombok.Setter;
  * This is the common parts of the logic which is external to our app logic, this provides isolation
  * of the Sakai system from the app so that the integration can be adjusted for future versions or
  * even other systems without requiring rewriting large parts of the code
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public abstract class AbstractExternalLogic {
 
@@ -107,18 +105,19 @@ public abstract class AbstractExternalLogic {
      */
     public String getCurrentLocationId() {
         String location = null;
+
         try {
             String context = toolManager.getCurrentPlacement().getContext();
             location = context;
-            // Site s = siteService.getSite( context );
-            // location = s.getReference(); // get the entity reference to the site
         } catch (Exception e) {
             // sakai failed to get us a location so we can assume we are not inside the portal
             return NO_LOCATION;
         }
+
         if (location == null) {
             location = NO_LOCATION;
         }
+
         return location;
     }
 
@@ -129,6 +128,7 @@ public abstract class AbstractExternalLogic {
      */
     public String getLocationTitle(String locationId) {
         String title = null;
+
         try {
             Site site = siteService.getSite(locationId);
             title = site.getTitle();
@@ -136,6 +136,7 @@ public abstract class AbstractExternalLogic {
             log.warn("Cannot get the info about locationId: {}", locationId);
             title = "----------";
         }
+
         return title;
     }
 
@@ -150,13 +151,15 @@ public abstract class AbstractExternalLogic {
      * OR null if the auth params are invalid
      */
     public String authenticateUser(String loginname, String password, boolean createSession) {
-        if (isBlank(loginname)) {
+        if (StringUtils.isBlank(loginname)) {
             throw new IllegalArgumentException("loginname cannot be blank");
         }
         if (password == null) {
             password = "";
         }
+
         User u = userDirectoryService.authenticate(loginname, password);
+
         if (u == null) {
             // auth failed
             return null;
@@ -177,6 +180,7 @@ public abstract class AbstractExternalLogic {
      */
     public String getUserIdFromLoginName(String loginname) {
         String userId;
+
         try {
             User u = userDirectoryService.getUserByEid(loginname);
             userId = u.getId();
@@ -192,10 +196,12 @@ public abstract class AbstractExternalLogic {
      * @return the new session ID for this user
      */
     public String startUserSession(String loginname) {
-        if (isBlank(loginname)) {
+        if (StringUtils.isBlank(loginname)) {
             throw new IllegalArgumentException("loginname cannot be blank");
         }
+
         User u;
+
         try {
             u = userDirectoryService.getUserByEid(loginname);
         } catch (UserNotDefinedException e) {
@@ -211,10 +217,12 @@ public abstract class AbstractExternalLogic {
      * @return the new session ID for this user
      */
     public String startUserSessionById(String userId) {
-        if ( isBlank(userId) ) {
+        if (StringUtils.isBlank(userId)) {
             throw new IllegalArgumentException("userId cannot be blank");
         }
+
         User u;
+
         try {
             u = userDirectoryService.getUser(userId);
         } catch (UserNotDefinedException e) {
@@ -231,6 +239,7 @@ public abstract class AbstractExternalLogic {
         s.setActive();
         sessionManager.setCurrentSession(s);
         authzGroupService.refreshUser(u.getId());
+
         return s.getId();
     }
 
@@ -244,6 +253,7 @@ public abstract class AbstractExternalLogic {
         try {
             // this also protects us from null pointer where session service is not set or working
             Session s = sessionManager.getSession(sessionId);
+
             if (s != null && s.getUserId() != null) {
                 if (makeCurrent) {
                     s.setActive();
@@ -256,6 +266,7 @@ public abstract class AbstractExternalLogic {
         } catch (Exception e) {
             throw new IllegalArgumentException("Failure attempting to set sakai session id ("+sessionId+"): " + e.getMessage());
         }
+
         return true;
    }
 
@@ -265,6 +276,7 @@ public abstract class AbstractExternalLogic {
     public String getCurrentSessionId() {
         String sessionId = null;
         Session s = sessionManager.getCurrentSession();
+
         if (s != null) {
             sessionId = s.getId();
         }
@@ -295,6 +307,7 @@ public abstract class AbstractExternalLogic {
      */
     public String getUserDisplayName(String userId) {
         String name = null;
+
         try {
             name = userDirectoryService.getUser(userId).getDisplayName();
         } catch (UserNotDefinedException e) {
@@ -308,6 +321,7 @@ public abstract class AbstractExternalLogic {
     public org.sakaiproject.iclicker.model.User getUser(String userId) {
         org.sakaiproject.iclicker.model.User user = null;
         User u = null;
+
         try {
             u = userDirectoryService.getUser(userId);
         } catch (UserNotDefinedException e) {
@@ -318,8 +332,7 @@ public abstract class AbstractExternalLogic {
             }
         }
         if (u != null) {
-            user = new org.sakaiproject.iclicker.model.User(u.getId(),
-                    u.getEid(), u.getDisplayName(), u.getSortName(), u.getEmail());
+            user = new org.sakaiproject.iclicker.model.User(u.getId(), u.getEid(), u.getDisplayName(), u.getSortName(), u.getEmail());
             user.fname = u.getFirstName();
             user.lname = u.getLastName();
         }
@@ -332,11 +345,12 @@ public abstract class AbstractExternalLogic {
      */
     public String getNotificationEmail() {
         // attempt to get the email address, if it is not there then we will not send an email
-        String emailAddr = serverConfigurationService.getString("portal.error.email",
-                serverConfigurationService.getString("mail.support") );
-        if ("".equals(emailAddr)) {
+        String emailAddr = serverConfigurationService.getString("portal.error.email", serverConfigurationService.getString("mail.support"));
+
+        if (StringUtils.isBlank(emailAddr)) {
             emailAddr = null;
         }
+
         return emailAddr;
     }
 
@@ -354,11 +368,12 @@ public abstract class AbstractExternalLogic {
         if (fromEmail == null || "".equals(fromEmail)) {
             fromEmail = "\"<no-reply@" + serverConfigurationService.getServerName() + ">";
         }
+
         for (String emailAddr : toEmails) {
             try {
                 emailService.send(fromEmail, emailAddr, subject, body, emailAddr, null, null);
             } catch (Exception e) {
-                log.warn("Failed to send email to "+emailAddr+" ("+subject+"): " + e, e);
+                log.warn("Failed to send email to {} ({})", emailAddr, subject, e);
             }
         }
     }
@@ -387,11 +402,7 @@ public abstract class AbstractExternalLogic {
      * @return true if allowed, false otherwise
      */
     public boolean isUserAllowedInLocation(String userId, String permission, String locationId) {
-        if (securityService.unlock(userId, permission, locationId)) {
-            return true;
-        }
-
-        return false;
+        return securityService.unlock(userId, permission, locationId);
     }
 
     /**
@@ -406,9 +417,12 @@ public abstract class AbstractExternalLogic {
         if (max <= 0) {
             max = 100;
         }
+
         List<Course> courses = new Vector<>();
+
         if (StringUtils.isBlank(siteId)) {
             List<Site> sites = getInstructorSites(0, max);
+
             for (Site site : sites) {
                 courses.add(makeCourseFromSite(site));
             }
@@ -417,6 +431,7 @@ public abstract class AbstractExternalLogic {
             if (siteService.siteExists(siteId)) {
                 if (siteService.allowUpdateSite(siteId) || siteService.allowViewRoster(siteId)) {
                     Site site;
+
                     try {
                         site = siteService.getSite(siteId);
                         Course c = makeCourseFromSite(site);
@@ -427,20 +442,24 @@ public abstract class AbstractExternalLogic {
                 }
             }
         }
+
         return courses;
     }
 
     private Course makeCourseFromSite(Site site) {
         long createdTime = System.currentTimeMillis() / 1000;
+
         if (site.getCreatedTime() != null) {
             createdTime = site.getCreatedTime().getTime() / 1000;
         }
+
         Course c = new Course(
             site.getId(), 
             site.getTitle(), 
             site.getShortDescription(), 
             createdTime, 
             site.isPublished());
+
         return c;
     }
 
@@ -457,16 +476,18 @@ public abstract class AbstractExternalLogic {
         if (start <= 0 || start > max) {
             start = 1;
         }
+
         List<Site> instSites = new ArrayList<>();
-        List<Site> sites = siteService.getSites(SelectionType.UPDATE, null, null, null,
-                SortType.TITLE_ASC, new PagingPosition(start, max));
+        List<Site> sites = siteService.getSites(SelectionType.UPDATE, null, null, null, SortType.TITLE_ASC, new PagingPosition(start, max));
         for (Site site : sites) {
             // filter out admin sites
             String sid = site.getId();
+
             if (sid.startsWith("!") || sid.endsWith("Admin") || sid.equals("mercury")) {
                 log.debug("Skipping site ({}) for current user in instructor courses", sid);
                 continue;
             }
+
             instSites.add(site);
         }
 
@@ -481,41 +502,26 @@ public abstract class AbstractExternalLogic {
      * @return the list of Students
      */
     public List<Student> getStudentsForCourse(String siteId) {
-        List<Student> students = new ArrayList<Student>();
+        List<Student> students = new ArrayList<>();
         Site site;
+
         try {
             site = siteService.getSite(siteId);
         } catch (IdUnusedException e1) {
             throw new IllegalArgumentException("No course found with id (" + siteId + ")");
         }
+
         String siteRef = site.getReference();
         // use the method gradebook uses internally
         List<User> studentUsers = securityService.unlockUsers("section.role.student", siteRef);
+
         for (User user : studentUsers) {
             Student s = new Student(user.getId(), user.getEid(), user.getDisplayName(), user.getSortName(), user.getEmail());
             s.fname = user.getFirstName();
             s.lname = user.getLastName();
             students.add(s);
         }
-        /*** this only works in the post-2.5 gradebook -AZ
-        // Let the gradebook tell use how it defines the students The gradebookUID is the siteId
-        String gbID = siteId;
-        if (!gradebookService.isGradebookDefined(gbID)) {
-            throw new IllegalArgumentException("No gradebook found for course (" + siteId
-                    + "), gradebook must be installed in each course to use with iClicker");
-        }
-        Map<String, String> studentToPoints = gradebookService.getFixedPoint(gbID);
-        ArrayList<String> eids = new ArrayList<String>(studentToPoints.keySet());
-        Collections.sort(eids);
-        for (String eid : eids) {
-            try {
-                User user = userDirectoryService.getUserByEid(eid);
-                students.add(new Student(user.getId(), user.getEid(), user.getDisplayName()));
-            } catch (UserNotDefinedException e) {
-                log.warn("Undefined user eid (" + eid + ") from site/gb (" + siteId + "): " + e);
-            }
-        }
-        ***/
+
         return students;
     }
 
@@ -525,6 +531,7 @@ public abstract class AbstractExternalLogic {
      */
     public boolean isUserInstructor(String userId) {
         boolean inst = false;
+
         // admin never counts as in instructor
         if (!isUserAdmin(userId)) {
             int count = siteService.countSites(SelectionType.UPDATE, null, null, null);
@@ -546,8 +553,10 @@ public abstract class AbstractExternalLogic {
         if (studentUserId == null || "".equals(studentUserId)) {
             throw new IllegalArgumentException("studentUserId must be set");
         }
+
         String courseId = null;
         List<Site> sites = getInstructorSites(0, 0);
+
         if (sites != null && !sites.isEmpty()) {
             if (sites.size() >= 99) {
                 // if instructor of 99 or more sites then auto-approved 
@@ -555,6 +564,7 @@ public abstract class AbstractExternalLogic {
             } else {
                 for (Site site : sites) {
                     Member member = site.getMember(studentUserId);
+
                     if (member != null) {
                         courseId = site.getId();
                         break;
@@ -578,31 +588,38 @@ public abstract class AbstractExternalLogic {
     public Gradebook getCourseGradebook(String siteId, String gbItemName) {
         // The gradebookUID is the siteId, the gradebookID is a long
         String gbID = siteId;
+
         if (!gradebookService.isGradebookDefined(gbID)) {
             throw new IllegalArgumentException("No gradebook found for site: " + siteId);
         }
+
         // verify permissions
         String userId = getCurrentUserId();
-        if (userId == null 
-                || ! siteService.allowUpdateSite(siteId) 
-                || ! siteService.allowViewRoster(siteId) ) {
+
+        if (userId == null || ! siteService.allowUpdateSite(siteId) || ! siteService.allowViewRoster(siteId) ) {
             throw new SecurityException("User ("+userId+") cannot access gradebook in site ("+siteId+")");
         }
+
         Gradebook gb = new Gradebook(gbID);
         gb.students = getStudentsForCourse(siteId);
         Map<String, String> studentUserIds = new ConcurrentHashMap<>();
+
         for (Student student : gb.students) {
             studentUserIds.put(student.userId, student.username);
         }
+
         ArrayList<String> studentIds = new ArrayList<>(studentUserIds.keySet());
+
         if (gbItemName == null) {
             List<Assignment> gbitems = gradebookService.getAssignments(gbID);
+
             for (Assignment assignment : gbitems) {
                 GradebookItem gbItem = makeGradebookItemFromAssignment(gbID, assignment, studentUserIds, studentIds);
                 gb.items.add(gbItem);
             }
         } else {
             Assignment assignment = gradebookService.getAssignment(gbID, gbItemName);
+
             if (assignment != null) {
                 GradebookItem gbItem = makeGradebookItemFromAssignment(gbID, assignment, studentUserIds, studentIds);
                 gb.items.add(gbItem);
@@ -626,30 +643,23 @@ public abstract class AbstractExternalLogic {
             // too expensive: if (gradebookService.getGradeViewFunctionForUserForStudentForItem(gbID, assignment.getId(), studentId) == null) {
             // Double grade = gradebookService.getAssignmentScore(gbID, assignment.getName(), studentId);
             String grade = gradebookService.getAssignmentScoreString(gbID, assignment.getId(), studentId);
+
             if (grade != null) {
                 GradebookItemScore score = new GradebookItemScore(assignment.getId().toString(), studentId, grade);
                 score.username = studentUserIds.get(studentId);
                 // CommentDefinition cd = gradebookService.getAssignmentScoreComment(gbID, assignment.getName(), studentId);
                 CommentDefinition cd = gradebookService.getAssignmentScoreComment(gbID, assignment.getId(), studentId);
+
                 if (cd != null) {
                     score.comment = cd.getCommentText();
                     score.recorded = cd.getDateRecorded();
                     score.graderUserId = cd.getGraderUid();
                 }
+
                 gbItem.scores.add(score);
             }
         }
-        // This is the post 2.5 way
-        // List<GradeDefinition> grades = gradebookService.getGradesForStudentsForItem(siteId,
-        // assignment.getId(), studentIds);
-        // for (GradeDefinition gd : grades) {
-        // String studId = gd.getStudentUid();
-        // String studEID = studentUserIds.get(studId);
-        // GradebookItemScore score = new GradebookItemScore(assignment.getId().toString(),
-        // studId, gd.getGrade(), studEID, gd.getGraderUid(), gd.getDateRecorded(),
-        // gd.getGradeComment());
-        // gbItem.scores.add(score);
-        // }
+
         return gbItem;
     }
 
@@ -673,12 +683,15 @@ public abstract class AbstractExternalLogic {
         if (StringUtils.isBlank(gbItem.name)) {
             throw new IllegalArgumentException("gbItem must have the name set");
         }
+
         String gradebookUid = gbItem.gradebookId;
         Assignment assignment = null;
+
         // find by name
         if (gradebookService.isAssignmentDefined(gradebookUid, gbItem.name)) {
             assignment = gradebookService.getAssignment(gradebookUid, gbItem.name);
         }
+
         // in the pre-2.6 GB we can only lookup by name
         if (assignment == null) {
             // try to find by name
@@ -686,6 +699,7 @@ public abstract class AbstractExternalLogic {
                 assignment = gradebookService.getAssignment(gradebookUid, gbItem.name);
             }
         }
+
         // now we have the item if it exists
         try {
             // try to save or update it
@@ -704,19 +718,21 @@ public abstract class AbstractExternalLogic {
                 // SecurityException, AssignmentHasIllegalPointsException, RuntimeException
             } else {
                 assignment.setExternallyMaintained(false); // cannot modify it later if true
+
                 // assign new values to existing assignment
                 if (gbItem.dueDate != null) {
                     assignment.setDueDate(gbItem.dueDate);
                 }
+
                 if (gbItem.type != null) {
                     assignment.setExternalAppName(gbItem.type);
                     //assignment.setExternalId(gbItem.type);
                 }
+
                 if (gbItem.pointsPossible != null && gbItem.pointsPossible >= 0d) {
                     assignment.setPoints(gbItem.pointsPossible);
                 }
-                // assignment.setReleased(gbItem.released); // no mod released setting from here
-                // gradebookService.updateAssignment(gradebookUid, assignment.getName(), assignment);
+
                 gradebookService.updateAssignment(gradebookUid, assignment.getId(), assignment);
             }
         } catch (SecurityException e) {
@@ -724,17 +740,21 @@ public abstract class AbstractExternalLogic {
         } catch (RuntimeException e) {
             throw new IllegalArgumentException("Invalid assignment ("+assignment+"): cannot create: " + e, e);
         }
+
         gbItem.id = assignment.getId()+""; // avoid NPE
         int errorsCount = 0;
+
         if (gbItem.scores != null && !gbItem.scores.isEmpty()) {
             // now update scores if there are any to update, 
             // this will not remove scores and will only add new ones
             for (GradebookItemScore score : gbItem.scores) {
-                if (isBlank(score.username) && isBlank(score.userId)) {
+                if (StringUtils.isBlank(score.username) && StringUtils.isBlank(score.userId)) {
                     score.error = USER_DOES_NOT_EXIST_ERROR; //"USER_MISSING_ERROR";
                     continue;
                 }
+
                 String studentId = score.userId;
+
                 if (studentId == null || "".equals(studentId)) {
                     // convert student EID to ID
                     try {
@@ -756,14 +776,16 @@ public abstract class AbstractExternalLogic {
                     }
                 }
                 score.assignId(gbItem.id, studentId);
+
                 // null/blank scores are not allowed
-                if (isBlank(score.grade)) {
+                if (StringUtils.isBlank(score.grade)) {
                     score.error = "NO_SCORE_ERROR";
                     errorsCount++;
                     continue;
                 }
 
                 Double dScore;
+
                 try {
                     dScore = Double.valueOf(score.grade);
                 } catch (NumberFormatException e) {
@@ -771,18 +793,22 @@ public abstract class AbstractExternalLogic {
                     errorsCount++;
                     continue;
                 }
+
                 // Student Score should not be greater than the total points possible
                 if (dScore > assignment.getPoints()) {
                     score.error = POINTS_POSSIBLE_UPDATE_ERRORS;
                     errorsCount++;
                     continue;
                 }
+
                 try {
                     // check against existing score
                     // Double currentScore = gradebookService.getAssignmentScore(gradebookUid, gbItem.name, studentId);
                     String currentScore = gradebookService.getAssignmentScoreString(gradebookUid, assignment.getId(), studentId);
+
                     if (currentScore != null) {
                         Double currentScoreDouble = Double.valueOf(currentScore);
+
                         if (dScore < currentScoreDouble) {
                             score.error = SCORE_UPDATE_ERRORS;
                             errorsCount++;
@@ -790,10 +816,9 @@ public abstract class AbstractExternalLogic {
                         }
                     }
                     // null grade deletes the score
-                    // gradebookService.setAssignmentScore(gradebookUid, gbItem.name, studentId, dScore, "i>clicker");
                     gradebookService.setAssignmentScoreString(gradebookUid, assignment.getId(), studentId, Double.toString(dScore), "i>clicker");
-                    if (score.comment != null && ! "".equals(score.comment)) {
-                        // gradebookService.setAssignmentScoreComment(gradebookUid, gbItem.name, studentId, score.comment);
+
+                    if (StringUtils.isNotBlank(score.comment)) {
                         gradebookService.setAssignmentScoreComment(gradebookUid, assignment.getId(), studentId, score.comment);
                     }
                 } catch (Exception e) {
@@ -802,25 +827,12 @@ public abstract class AbstractExternalLogic {
                     score.error = GENERAL_ERRORS;
                     errorsCount++;
                 }
-// post-2.5 gradebook method
-//                try {
-//                    gradebookService.saveGradeAndCommentForStudent(gradebookUid, gbItemId,
-//                            studentId, score.grade, score.comment);
-//                } catch (InvalidGradeException e) {
-//                    scoreErrors.put(score, "SCORE_INVALID");
-//                    continue;
-//                }
-//                GradeDefinition gd = gradebookService.getGradeDefinitionForStudentForItem(
-//                        gradebookUid, gbItemId, studentId);
-//                score.assignId(gbItem.id, gd.getStudentUid());
-//                score.comment = gd.getGradeComment();
-//                score.grade = gd.getGrade();
-//                score.graderUserId = gd.getGraderUid();
-//                score.recorded = gd.getDateRecorded();
             }
+
             // put the errors in the item
             if (errorsCount > 0) {
                 gbItem.scoreErrors = new HashMap<String, String>();
+
                 for (GradebookItemScore score : gbItem.scores) {
                     gbItem.scoreErrors.put(score.id, score.error);
                 }
@@ -829,34 +841,27 @@ public abstract class AbstractExternalLogic {
         return gbItem;
     }
 
-    /** Not possible in the sakai 2.5 gradebook service -AZ
-    public boolean removeGradebookItem(String siteId, String itemName) {
-        boolean removed = false;
-        if (gradebookService.isAssignmentDefined(siteId, itemName)) {
-            Assignment a = gradebookService.getAssignment(siteId, itemName);
-            gradebookService.removeAssignment(a.getId());
-        }
-        return removed;
-    }
-    ***/
-
     /**
      * String type: gets the printable name of this server
      */
     public static String SETTING_SERVER_NAME = "server.name";
+
     /**
      * String type: gets the unique id of this server (safe for clustering if used)
      */
     public static String SETTING_SERVER_ID = "server.cluster.id";
+
     /**
      * String type: gets the URL to this server
      */
     public static String SETTING_SERVER_URL = "server.main.URL";
+
     /**
      * String type: gets the URL to the portal on this server (or just returns the server URL if no
      * portal in use)
      */
     public static String SETTING_PORTAL_URL = "server.portal.URL";
+
     /**
      * Boolean type: if true then there will be data preloads and DDL creation, if false then data
      * preloads are disabled (and will cause exceptions if preload data is missing)
@@ -880,6 +885,7 @@ public abstract class AbstractExternalLogic {
     @SuppressWarnings("unchecked")
     public <T> T getConfigurationSetting(String settingName, T defaultValue) {
         T returnValue = defaultValue;
+
         if (SETTING_SERVER_NAME.equals(settingName)) {
             returnValue = (T) serverConfigurationService.getServerName();
         } else if (SETTING_SERVER_URL.equals(settingName)) {
@@ -904,19 +910,12 @@ public abstract class AbstractExternalLogic {
                     boolean value = serverConfigurationService.getBoolean(settingName, bool);
                     returnValue = (T) Boolean.valueOf(value);
                 } else if (defaultValue instanceof String) {
-                    returnValue = (T) serverConfigurationService.getString(settingName,
-                            (String) defaultValue);
+                    returnValue = (T) serverConfigurationService.getString(settingName, (String) defaultValue);
                 }
             }
         }
-        return returnValue;
-    }
 
-    public static boolean isBlank(String str) {
-        if (str == null || "".equals(str)) {
-            return true;
-        }
-        return false;
+        return returnValue;
     }
 
     // METHODS TO ADD TOOL TO MY WORKSPACES
@@ -931,11 +930,14 @@ public abstract class AbstractExternalLogic {
         if (userId == null) {
             throw new IllegalArgumentException("userId cannot be null");
         }
+
         Session currentSession = sessionManager.getCurrentSession();
+
         if (currentSession == null) {
             // start a session if none is around
             currentSession = sessionManager.startSession(userId);
         }
+
         currentSession.setUserId(userId);
         currentSession.setActive();
         sessionManager.setCurrentSession(currentSession);
@@ -958,16 +960,16 @@ public abstract class AbstractExternalLogic {
     public BigRunner makeAddToolToWorkspacesRunner(final String toolId, final String pageTitle, final String toolTitle) {
         // check for admin first
         final String currentUserId = getCurrentUserId();
+
         if (currentUserId == null || !isUserAdmin(currentUserId)) {
-            throw new SecurityException("current user (" + currentUserId
-                            + ") cannot push tool into worksites, only the admin can perform this operation");
+            throw new SecurityException("current user (" + currentUserId + ") cannot push tool into worksites, only the admin can perform this operation");
         }
 
         // get the tool
         final Tool tool = toolManager.getTool(toolId);
+
         if (tool == null) {
-            throw new IllegalArgumentException("toolId (" + toolId
-                    + ") is invalid, could not find tool");
+            throw new IllegalArgumentException("toolId (" + toolId + ") is invalid, could not find tool");
         }
 
         BigRunner r = new BigRunnerImpl(BigRunner.RUNNER_TYPE_ADD) {
@@ -977,21 +979,24 @@ public abstract class AbstractExternalLogic {
                     setCurrentUser(currentUserId);
                     
                     // Get all user Ids
-                    List<String> allUserIds = new ArrayList<String>();
+                    List<String> allUserIds = new ArrayList<>();
                     List<User> users = userDirectoryService.getUsers();
+
                     for (Iterator<User> i = users.iterator(); i.hasNext();) {
                         User user = (User) i.next();
                         allUserIds.add(user.getId());
                     }
+
                     // remove special users
                     List<String> specialUserIds = Arrays.asList(SPECIAL_USERS);
                     allUserIds.removeAll(specialUserIds);
-                    this.setTotal( allUserIds.size() );
+                    this.setTotal(allUserIds.size());
 
                     // now add a page to each site, and the tool to that page
                     for (String userId : allUserIds) {
                         String myWorkspaceId = siteService.getUserSiteId(userId);
                         Site siteEdit;
+
                         try {
                             siteEdit = siteService.getSite(myWorkspaceId);
                         } catch (IdUnusedException e) {
@@ -1002,6 +1007,7 @@ public abstract class AbstractExternalLogic {
 
                         // check if we already have the tool
                         ToolConfiguration tc = siteEdit.getToolForCommonId(toolId);
+
                         if (tc == null) {
                             // no tool so add the page and the tool
                             SitePage sitePageEdit = siteEdit.addPage();
@@ -1016,20 +1022,21 @@ public abstract class AbstractExternalLogic {
                             tc.setTitle(toolTitle);
 
                             siteService.save(siteEdit);
-                            log.info("Tool (" + toolId + ") added to site (" + siteEdit.getId()
-                                    + ") for user (" + userId + ")");
+                            log.info("Tool ({}) added to site ({}) for user ({})", toolId, siteEdit.getId(), userId);
                         }
+
                         this.incrementCompleted();
                     }
                 } catch (Exception e) {
-                    log.error("Failed trying to add (" + toolId + ") to my workspaces: " + e, e);
+                    log.error("Failed trying to add ({}) to my workspaces: ", toolId, e);
                     throw new RuntimeException("Failed trying to add (" + toolId + ") to my workspaces: " + e, e);
                 } finally {
-                    log.info("Completed long running process: " + this);
+                    log.info("Completed long running process: {}", this);
                     setComplete();
                 }
             }
         };
+
         return r;
     }
 
@@ -1047,16 +1054,16 @@ public abstract class AbstractExternalLogic {
     public BigRunner makeRemoveToolFromWorkspacesRunner(final String toolId) {
         // check for admin first
         final String currentUserId = getCurrentUserId();
+
         if (currentUserId == null || !isUserAdmin(currentUserId)) {
-            throw new SecurityException("current user (" + currentUserId
-                            + ") cannot push tool into worksites, only the admin can perform this operation");
+            throw new SecurityException("current user (" + currentUserId + ") cannot push tool into worksites, only the admin can perform this operation");
         }
 
         // get the tool
         final Tool tool = toolManager.getTool(toolId);
+
         if (tool == null) {
-            throw new IllegalArgumentException("toolId (" + toolId
-                    + ") is invalid, could not find tool");
+            throw new IllegalArgumentException("toolId (" + toolId + ") is invalid, could not find tool");
         }
 
         BigRunner r = new BigRunnerImpl(BigRunner.RUNNER_TYPE_REMOVE) {
@@ -1068,10 +1075,12 @@ public abstract class AbstractExternalLogic {
                     // Get all user Ids
                     List<String> allUserIds = new ArrayList<String>();
                     List<User> users = userDirectoryService.getUsers();
+
                     for (Iterator<User> i = users.iterator(); i.hasNext();) {
                         User user = (User) i.next();
                         allUserIds.add(user.getId());
                     }
+
                     // remove special users
                     List<String> specialUserIds = Arrays.asList(SPECIAL_USERS);
                     allUserIds.removeAll(specialUserIds);
@@ -1081,6 +1090,7 @@ public abstract class AbstractExternalLogic {
                     for (String userId : allUserIds) {
                         String myWorkspaceId = siteService.getUserSiteId(userId);
                         Site siteEdit;
+
                         try {
                             siteEdit = siteService.getSite(myWorkspaceId);
                         } catch (IdUnusedException e) {
@@ -1091,25 +1101,27 @@ public abstract class AbstractExternalLogic {
 
                         // check if we have the tool
                         ToolConfiguration tc = siteEdit.getToolForCommonId(toolId);
+
                         if (tc != null) {
                             // remove it
                             siteEdit.removePage( tc.getContainingPage() );
                             siteService.save(siteEdit);
-                            log.info("Tool (" + toolId + ") removed from site (" + siteEdit.getId()
-                                    + ") for user (" + userId + ")");
+                            log.info("Tool ({}) removed from site ({}) for user ({})", toolId, siteEdit.getId(), userId);
                         }
+
                         this.incrementCompleted();
                     }
                 } catch (Exception e) {
-                    log.error("Failed trying to remove (" + toolId + ") from my workspaces: " + e, e);
+                    log.error("Failed trying to remove ({}) from my workspaces: ", toolId, e);
                     setFailure(e);
                     throw new RuntimeException("Failed trying to remove (" + toolId + ") from my workspaces: " + e, e);
                 } finally {
-                    log.info("Completed long running process: " + this);
+                    log.info("Completed long running process: {}", this);
                     setComplete();
                 }
             }
         };
+
         return r;
     }
 

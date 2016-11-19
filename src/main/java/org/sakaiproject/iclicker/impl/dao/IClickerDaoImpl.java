@@ -37,12 +37,8 @@ import java.util.List;
  * Implementations of any specialized DAO methods from the specialized DAO 
  * that allows the developer to extend the functionality of the generic dao package,
  * this handles all data persistence for the application
- *
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
-public class IClickerDaoImpl
-        extends HibernateGeneralGenericDao
-        implements IClickerDao {
+public class IClickerDaoImpl extends HibernateGeneralGenericDao implements IClickerDao {
 
     private static final Logger log = LoggerFactory.getLogger(IClickerDaoImpl.class);
 
@@ -63,7 +59,6 @@ public class IClickerDaoImpl
         }
 
     }
-
 
     /**
      * Allows a lock to be obtained that is system wide,
@@ -92,9 +87,11 @@ public class IClickerDaoImpl
         try {
             // check the lock
             List<ClickerLock> locks = findBySearch(ClickerLock.class, new Search("name", lockId) );
+
             if (locks.size() > 0) {
                 // check if this is my lock, if not, then exit, if so then go ahead
                 ClickerLock lock = locks.get(0);
+
                 if (lock.getHolder().equals(executerId)) {
                     obtainedLock = true;
                     // if this is my lock then update it immediately
@@ -104,6 +101,7 @@ public class IClickerDaoImpl
                 } else {
                     // not the lock owner but we can still get the lock
                     long validTime = lock.getLastModified().getTime() + timePeriod + 100;
+
                     if (System.currentTimeMillis() > validTime) {
                         // the old lock is no longer valid so we are taking it
                         obtainedLock = true;
@@ -156,9 +154,11 @@ public class IClickerDaoImpl
         try {
             // check the lock
             List<ClickerLock> locks = findBySearch(ClickerLock.class, new Search("name", lockId) );
+
             if (locks.size() > 0) {
                 // check if this is my lock, if not, then exit, if so then go ahead
                 ClickerLock lock = locks.get(0);
+
                 if (lock.getHolder().equals(executerId)) {
                     releasedLock = true;
                     // if this is my lock then remove it immediately
@@ -177,7 +177,6 @@ public class IClickerDaoImpl
         return releasedLock;
     }
 
-
     /**
      * Cleans up lock if there was a failure
      *
@@ -185,6 +184,7 @@ public class IClickerDaoImpl
      */
     private void cleanupLockAfterFailure(String lockId) {
         getHibernateTemplate().clear(); // cancel any pending operations
+
         // try to clear the lock if things died
         try {
             List<ClickerLock> locks = findBySearch(ClickerLock.class, new Search("name", lockId) );

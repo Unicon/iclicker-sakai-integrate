@@ -21,9 +21,7 @@ package org.sakaiproject.iclicker.exception;
 /**
  * Exception which indicates the clicker is already registered,
  * contains info about who it is registered to and who tried to 
- * register it
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
+ * register it 
  */
 public class ClickerRegisteredException extends RuntimeException {
 

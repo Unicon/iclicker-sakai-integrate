@@ -23,7 +23,6 @@ package org.sakaiproject.iclicker.exception;
  * {@link #failure} indicates the {@link Failure} enum:
  * EMPTY, LENGTH, CHARS, CHECKSUM, SAMPLE
  * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class ClickerIdInvalidException extends RuntimeException {
 
@@ -76,8 +75,7 @@ public class ClickerIdInvalidException extends RuntimeException {
         this(message, failure, clickerId, null);
     }
 
-    public ClickerIdInvalidException(String message, Failure failure,
-            String clickerId, Throwable cause) {
+    public ClickerIdInvalidException(String message, Failure failure, String clickerId, Throwable cause) {
         super(message, cause);
         this.failure = failure;
         this.clickerId = clickerId;
