@@ -17,22 +17,22 @@
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.model;
 
 import java.util.Set;
 
-import org.sakaiproject.iclicker.model.ClickerRegistration;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
+
+import lombok.Getter;
 
 /**
  * Represents a student in the course gradebook, this only makes sense in the context of a course or
  * a gradebook
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class Student extends User {
 
     public Boolean clickerRegistered;
-    public Set<ClickerRegistration> clickerRegistrations;
+    @Getter public Set<ClickerRegistration> clickerRegistrations;
 
     protected Student() {
     }
@@ -51,10 +51,6 @@ public class Student extends User {
 
     public boolean isClickerRegistered() {
         return clickerRegistered == null ? false : clickerRegistered.booleanValue();
-    }
-
-    public Set<ClickerRegistration> getClickerRegistrations() {
-        return clickerRegistrations;
     }
 
 }

@@ -16,23 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.exception;
 
 /**
  * Exception which indicates the clicker is already registered,
  * contains info about who it is registered to and who tried to 
- * register it
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
+ * register it 
  */
 public class ClickerRegisteredException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
 
     public String ownerId;
     public String clickerId;
     public String registeredOwnerId;
 
-    public ClickerRegisteredException(String ownerId, String clickerId,
-            String registeredOwnerId) {
+    public ClickerRegisteredException(String ownerId, String clickerId, String registeredOwnerId) {
         super();
         this.ownerId = ownerId;
         this.clickerId = clickerId;

@@ -23,7 +23,7 @@
           "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping default-cascade="none">
-    <class name="org.sakaiproject.iclicker.model.ClickerLock" table="ICLICKER_LOCK" dynamic-insert="false" dynamic-update="false">
+    <class name="org.sakaiproject.iclicker.model.dao.ClickerLock" table="ICLICKER_LOCK" dynamic-insert="false" dynamic-update="false">
         <id name="id" type="java.lang.Long" unsaved-value="null">
             <column name="ID" />
             <generator class="native" />

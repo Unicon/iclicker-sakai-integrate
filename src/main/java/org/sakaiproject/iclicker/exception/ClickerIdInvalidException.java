@@ -16,16 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.exception;
 
 /**
  * Exception which indicates a failure in the clickerId,
  * {@link #failure} indicates the {@link Failure} enum:
  * EMPTY, LENGTH, CHARS, CHECKSUM, SAMPLE
  * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class ClickerIdInvalidException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
 
     public static enum Failure { 
         /**
@@ -74,8 +75,7 @@ public class ClickerIdInvalidException extends RuntimeException {
         this(message, failure, clickerId, null);
     }
 
-    public ClickerIdInvalidException(String message, Failure failure,
-            String clickerId, Throwable cause) {
+    public ClickerIdInvalidException(String message, Failure failure, String clickerId, Throwable cause) {
         super(message, cause);
         this.failure = failure;
         this.clickerId = clickerId;

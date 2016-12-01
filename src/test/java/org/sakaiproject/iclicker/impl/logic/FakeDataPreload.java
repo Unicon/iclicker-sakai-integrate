@@ -16,16 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.impl.logic;
 
 import java.lang.reflect.Field;
 
-import org.sakaiproject.iclicker.model.ClickerRegistration;
 import org.sakaiproject.genericdao.api.GenericDao;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
 
 /**
  * Contains test data for preloading and test constants
- * @author Sakai App Builder -AZ
  */
 public class FakeDataPreload {
 

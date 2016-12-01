@@ -17,33 +17,37 @@
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.sakaiproject.iclicker.model;
+package org.sakaiproject.iclicker.model.dao;
 
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * This represents a clicker user key which is assigned to instructors on demand when used with an
  * LMS which uses a single sign on system. They key is used in place of a password and is a randomly
- * generated alphanum char sequence.
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
+ * generated alphanumeric char sequence.
  */
 public class ClickerUserKey implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long id;
+    @Setter @Getter private Long id;
+
     /**
      * Sakai userId (internal, not EID/USERNAME)
      */
-    private String userId;
+    @Setter @Getter private String userId;
+
     /**
      * The encoded user key
      */
-    private String userKey;
-    private Date dateCreated;
-    private Date dateModified;
+    @Setter @Getter private String userKey;
+
+    @Setter @Getter private Date dateCreated;
+    @Setter @Getter private Date dateModified;
 
     /**
      * Default constructor
@@ -82,64 +86,34 @@ public class ClickerUserKey implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+
+        if (getClass() != obj.getClass()) {
             return false;
+        }
+
         ClickerUserKey other = (ClickerUserKey) obj;
+
         if (id == null) {
-            if (other.id != null)
+            if (other.id != null) {
                 return false;
-        } else if (!id.equals(other.id))
+            }
+        } else if (!id.equals(other.id)) {
             return false;
+        }
+
         return true;
     }
 
     @Override
     public String toString() {
         return "ClickerUserKey [id=" + id + ", userId=" + userId + ", userKey=" + userKey + "]";
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getUserKey() {
-        return userKey;
-    }
-
-    public void setUserKey(String userKey) {
-        this.userKey = userKey;
-    }
-
-    public Date getDateCreated() {
-        return dateCreated;
-    }
-
-    public void setDateCreated(Date dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-
-    public Date getDateModified() {
-        return dateModified;
-    }
-
-    public void setDateModified(Date dateModified) {
-        this.dateModified = dateModified;
     }
 
 }

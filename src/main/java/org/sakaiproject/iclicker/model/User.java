@@ -17,25 +17,29 @@
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.model;
 
 import java.io.Serializable;
 import java.util.Comparator;
 
+import org.apache.commons.lang.StringUtils;
+
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Represents a user in the system
  * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class User {
 
-    public String userId;
-    public String username;
-    public String name;
-    public String fname;
-    public String lname;
-    public String email;
-    public String sortName;
+    @Setter @Getter public String userId;
+    @Setter @Getter public String username;
+    @Setter @Getter public String name;
+    @Setter @Getter public String fname;
+    @Setter @Getter public String lname;
+    @Setter @Getter public String email;
+    @Setter @Getter public String sortName;
 
     protected User() {
     }
@@ -57,54 +61,48 @@ public class User {
         return userId + ":" + username;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getSortName() {
-        return sortName;
-    }
-
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((userId == null) ? 0 : userId.hashCode());
         result = prime * result + ((username == null) ? 0 : username.hashCode());
+
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+
+        if (getClass() != obj.getClass()) {
             return false;
+        }
+
         User other = (User) obj;
+
         if (userId == null) {
-            if (other.userId != null)
+            if (other.userId != null) {
                 return false;
-        } else if (!userId.equals(other.userId))
+            }
+        } else if (!StringUtils.equals(userId, other.userId)) {
             return false;
+        }
+
         if (username == null) {
-            if (other.username != null)
+            if (other.username != null) {
                 return false;
-        } else if (!username.equals(other.username))
+            }
+        } else if (!StringUtils.equals(username, other.username)) {
             return false;
+        }
+
         return true;
     }
 
@@ -115,6 +113,7 @@ public class User {
         public int compare(User o1, User o2) {
             return o1.username.compareTo(o2.username);
         }
+
     }
 
     public static class SortnameComparator implements Comparator<User>, Serializable {
@@ -124,6 +123,7 @@ public class User {
         public int compare(User o1, User o2) {
             return o1.sortName.compareTo(o2.sortName);
         }
+
     }
 
 }

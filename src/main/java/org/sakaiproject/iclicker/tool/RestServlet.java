@@ -32,18 +32,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.entitybus.util.http.HttpAuth;
 import org.sakaiproject.entitybus.util.http.HttpRESTUtils;
-import org.sakaiproject.iclicker.logic.ClickerIdInvalidException;
-import org.sakaiproject.iclicker.logic.ClickerRegisteredException;
-import org.sakaiproject.iclicker.logic.Course;
-import org.sakaiproject.iclicker.logic.Gradebook;
-import org.sakaiproject.iclicker.logic.GradebookItem;
+import org.sakaiproject.iclicker.exception.ClickerIdInvalidException;
+import org.sakaiproject.iclicker.exception.ClickerRegisteredException;
 import org.sakaiproject.iclicker.logic.IClickerLogic;
-import org.sakaiproject.iclicker.logic.Student;
-import org.sakaiproject.iclicker.model.ClickerRegistration;
+import org.sakaiproject.iclicker.model.Course;
+import org.sakaiproject.iclicker.model.Gradebook;
+import org.sakaiproject.iclicker.model.GradebookItem;
+import org.sakaiproject.iclicker.model.Student;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This servlet will basically take the place of entitybroker in versions of Sakai that do not have
@@ -51,14 +52,12 @@ import org.sakaiproject.iclicker.model.ClickerRegistration;
  * More help info at:
  * <br/> 
  * http://localhost:8080/iclicker/rest
- * 
- * @author Aaron Zeckoski (aaron@caret.cam.ac.uk)
  */
 public class RestServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static Log log = LogFactory.getLog(RestServlet.class);
+    private static Logger log = LoggerFactory.getLogger(RestServlet.class);
 
     private static final String PASSWORD = "_password";
     private static final String LOGIN = "_login";
@@ -76,6 +75,7 @@ public class RestServlet extends HttpServlet {
         if (this.logic == null) {
             this.logic = IClickerLogic.getInstance();
         }
+
         return this.logic;
     }
 
@@ -85,48 +85,51 @@ public class RestServlet extends HttpServlet {
         super.init(config);
         // get the services
         IClickerLogic logic = getLogic();
-        log.debug("IClickerLogic: " + logic);
+        log.debug("IClickerLogic: {}:", logic);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // DEFAULT: POST for PUT or POST
         String method = "POST";
         String _method = req.getParameter(COMPENSATE_METHOD);
-        if (_method != null && ! "".equals(_method)) {
+
+        if (StringUtils.isNotBlank(_method)) {
             // Allows override to GET or DELETE
             _method = _method.toUpperCase().trim();
-            if ("GET".equals(_method)) {
+
+            if (StringUtils.equals("GET", _method)) {
                 method = "GET";
-            } else if ("DELETE".equals(_method)) {
+            } else if (StringUtils.equals("DELETE", _method)) {
                 method = "DELETE";
             }
         }
+
         handle(req, resp, method);
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
-            IOException {
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // treat PUT as POST
         doPost(req, resp);
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
-            IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         handle(req, resp, "GET");
     }
 
     @SuppressWarnings("unchecked")
-    protected void handle(HttpServletRequest req, HttpServletResponse res, String method) 
-            throws ServletException, IOException {
+    protected void handle(HttpServletRequest req, HttpServletResponse res, String method) throws ServletException, IOException {
         // force all response encoding to UTF-8 / XML by default
         res.setCharacterEncoding("UTF-8");
         // get the path
         String path = req.getPathInfo();
-        if (path == null) { path = ""; }
+
+        if (path == null) {
+            path = "";
+        }
+
         String[] segments = HttpRESTUtils.getPathSegments(path);
 
         // init the vars to success
@@ -135,18 +138,14 @@ public class RestServlet extends HttpServlet {
         String output = "";
 
         // check to see if this is one of the paths we understand
-        if (path == null 
-                || "".equals(path) 
-                || segments.length == 0) {
+        if (StringUtils.isBlank(path) || segments.length == 0) {
             valid = false;
             output = "Unknown path ("+path+") specified"; 
             status = HttpServletResponse.SC_NOT_FOUND;
         }
 
         // check the method is allowed
-        if (valid 
-                && ! "POST".equals(method) 
-                && ! "GET".equals(method)) {
+        if (valid && !StringUtils.equals("POST", method) && !StringUtils.equals("GET", method)) {
             valid = false;
             output = "Only POST and GET methods are supported";
             status = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
@@ -159,23 +158,29 @@ public class RestServlet extends HttpServlet {
             String pathSeg1 = HttpRESTUtils.getPathSegment(path, 1);
 
             boolean restDebug = false;
+
             if (req.getParameter("_debug") != null || logic.forceRestDebugging) {
                 restDebug = true;
                 StringBuilder sb = new StringBuilder();
                 sb.append("[");
+
                 for (Map.Entry<String, String[]> entry : (Set<Map.Entry<String, String[]>>)req.getParameterMap().entrySet()) {
                     sb.append(entry.getKey()).append("=").append(Arrays.toString(entry.getValue())).append(", ");
                 }
+
                 if (sb.length() > 2) {
                     sb.setLength(sb.length() - 2);  //Removes the last comma
                 }
+
                 sb.append("]");
-                log.info("iclicker REST debugging: req: "+method+" "+path+", params="+sb);
+                log.info("iclicker REST debugging: req: {} {}, params={}", method, path, sb);
             }
+
             try {
-                if ("verifykey".equals(pathSeg0)) {
+                if (StringUtils.equals("verifykey", pathSeg0)) {
                     // SPECIAL case handling (no authn handling)
                     String ssoKey = req.getParameter(SSO_KEY);
+
                     if (logic.verifyKey(ssoKey)) {
                         status = HttpServletResponse.SC_OK;
                         output = "Verified";
@@ -183,50 +188,56 @@ public class RestServlet extends HttpServlet {
                         status = HttpServletResponse.SC_NOT_IMPLEMENTED;
                         output = "Disabled";
                     }
+
                     if (restDebug) {
-                        log.info("iclicker REST debugging: verifykey (s="+status+", o="+output+")");
+                        log.info("iclicker REST debugging: verifykey (s={}, o={})", status, output);
                     }
+
                     res.setContentType("text/plain");
                     res.setContentLength(output.length());
                     res.getWriter().print(output);
                     res.setStatus(status);
+
                     return;
                 } else {
                     // NORMAL case handling
                     // handle the request authn
                     handleAuthN(req, res);
                     // process the REQUEST
-                    if ("GET".equals(method)) {
-                        if ("courses".equals(pathSeg0)) {
+                    if (StringUtils.equals("GET", method)) {
+                        if (StringUtils.equals("courses", pathSeg0)) {
                             // handle retrieving the list of courses for an instructor
                             String userId = getAndCheckCurrentUser("access instructor courses listings");
                             String courseId = pathSeg1;
-                            if (restDebug) {
-                                log.info("iclicker REST debugging: courses (u="+userId+", c="+courseId+")");
-                            }
-                            List<Course> courses = logic.getCoursesForInstructorWithStudents(courseId);
-                            if (courses.isEmpty()) {
-                                throw new SecurityException(
-                                        "No courses found, only instructors can access instructor courses listings");
-                            }
-                            output = logic.encodeCourses(userId, courses);
 
-                        } else if ("students".equals(pathSeg0)) {
+                            if (restDebug) {
+                                log.info("iclicker REST debugging: courses (u={}, c={})", userId, courseId);
+                            }
+
+                            List<Course> courses = logic.getCoursesForInstructorWithStudents(courseId);
+
+                            if (courses.isEmpty()) {
+                                throw new SecurityException("No courses found, only instructors can access instructor courses listings");
+                            }
+
+                            output = logic.encodeCourses(userId, courses);
+                        } else if (StringUtils.equals("students", pathSeg0)) {
                             // handle retrieval of the list of students
                             String courseId = pathSeg1;
+
                             if (courseId == null) {
-                                throw new IllegalArgumentException(
-                                        "valid courseId must be included in the URL /students/{courseId}");
+                                throw new IllegalArgumentException("valid courseId must be included in the URL /students/{courseId}");
                             }
+
                             if (restDebug) {
-                                log.info("iclicker REST debugging: students (c="+courseId+")");
+                                log.info("iclicker REST debugging: students (c={})", courseId);
                             }
+
                             getAndCheckCurrentUser("access student enrollment listings");
                             List<Student> students = logic.getStudentsForCourseWithClickerReg(courseId);
                             Course course = new Course(courseId, courseId);
                             course.students = students;
                             output = logic.encodeEnrollments(course);
-
                         } else {
                             // UNKNOWN
                             valid = false;
@@ -235,24 +246,28 @@ public class RestServlet extends HttpServlet {
                         }
                     } else {
                         // POST
-                        if ("gradebook".equals(pathSeg0)) {
+                        if (StringUtils.equals("gradebook", pathSeg0)) {
                             // handle retrieval of the list of students
                             String courseId = pathSeg1;
+
                             if (courseId == null) {
-                                throw new IllegalArgumentException(
-                                        "valid courseId must be included in the URL /gradebook/{courseId}");
+                                throw new IllegalArgumentException("valid courseId must be included in the URL /gradebook/{courseId}");
                             }
+
                             getAndCheckCurrentUser("upload grades into the gradebook");
                             String xml = getXMLData(req);
+
                             if (restDebug) {
-                                log.info("iclicker REST debugging: gradebook (c="+courseId+", xml="+xml+")");
+                                log.info("iclicker REST debugging: gradebook (c={}, xml={})", courseId, xml);
                             }
+
                             try {
                                 Gradebook gradebook = logic.decodeGradebookXML(xml);
                                 // process gradebook data
                                 List<GradebookItem> results = logic.saveGradebook(gradebook);
                                 // generate the output
                                 output = logic.encodeSaveGradebookResults(courseId, results);
+
                                 if (output == null) {
                                     // special return, non-XML, no failures in save
                                     res.setStatus(HttpServletResponse.SC_OK);
@@ -260,6 +275,7 @@ public class RestServlet extends HttpServlet {
                                     output = "True";
                                     res.setContentLength(output.length());
                                     res.getWriter().print(output);
+
                                     return;
                                 } else {
                                     // failures occurred during save
@@ -269,58 +285,62 @@ public class RestServlet extends HttpServlet {
                                 // invalid XML
                                 valid = false;
                                 output = "Invalid gradebook XML in request, unable to process: " + xml;
-                                log.warn("i>clicker: " + output, e);
+                                log.warn("i>clicker: {}", output, e);
                                 status = HttpServletResponse.SC_BAD_REQUEST;
                             }
 
-                        } else if ("authenticate".equals(pathSeg0)) {
+                        } else if (StringUtils.equals("authenticate", pathSeg0)) {
                             if (restDebug) {
                                 log.info("iclicker REST debugging: authenticate");
                             }
+
                             getAndCheckCurrentUser("authenticate via iclicker");
                             // special return, non-XML
                             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
                             return;
 
-                        } else if ("register".equals(pathSeg0)) {
+                        } else if (StringUtils.equals("register", pathSeg0)) {
                             getAndCheckCurrentUser("upload registrations data");
                             String xml = getXMLData(req);
+
                             if (restDebug) {
-                                log.info("iclicker REST debugging: register (xml="+xml+")");
+                                log.info("iclicker REST debugging: register (xml={})", xml);
                             }
+
                             ClickerRegistration cr = logic.decodeClickerRegistration(xml);
                             String ownerId = cr.getOwnerId();
                             Locale locale = req.getLocale();
                             String message;
                             boolean regStatus = false;
+
                             try {
                                 logic.createRegistration(cr.getClickerId(), ownerId);
                                 // valid registration
                                 message = logic.getMessage("reg.registered.below.success", locale, cr.getClickerId());
                                 regStatus = true;
                             } catch (ClickerIdInvalidException e) {
-                                // invalid clicker id
-                                //log.warn("register: " + e, e);
+                                // invalid clicker id;
                                 message = logic.getMessage("reg.registered.clickerId.invalid", locale, cr.getClickerId());
                             } catch (IllegalArgumentException e) {
                                 // invalid user id
-                                //log.warn("register: invalid user id: " + e, e);
                                 message = "Student not found in the CMS";
                             } catch (ClickerRegisteredException e) {
                                 // already registered
                                 String key;
-                                if (e.ownerId.equals(e.registeredOwnerId)) {
+
+                                if (StringUtils.equals(e.ownerId, e.registeredOwnerId)) {
                                     // already registered to this user
                                     key = "reg.registered.below.duplicate";
                                 } else {
                                     // already registered to another user
                                     key = "reg.registered.clickerId.duplicate.notowned";
                                 }
+
                                 message = logic.getMessage(key, locale, cr.getClickerId());
-                                //log.warn("register: clicker registered: " + e, e);
                             }
                             List<ClickerRegistration> registrations = logic.getClickerRegistrationsForUser(ownerId, true);
                             output = logic.encodeClickerRegistrationResult(registrations, regStatus, message);
+
                             if (regStatus) {
                                 status = HttpServletResponse.SC_OK;
                             } else {
@@ -338,6 +358,7 @@ public class RestServlet extends HttpServlet {
             } catch (SecurityException e) {
                 valid = false;
                 String currentUserId = currentUser();
+
                 if (currentUserId == null) {
                     output = "User must be logged in to perform this action: " + e;
                     status = HttpServletResponse.SC_UNAUTHORIZED;
@@ -348,20 +369,23 @@ public class RestServlet extends HttpServlet {
             } catch (IllegalArgumentException e) {
                 valid = false;
                 output = "Invalid request: " + e;
-                log.warn("i>clicker: " + output, e);
+                log.warn("i>clicker: {}", output, e);
                 status = HttpServletResponse.SC_BAD_REQUEST;
             } catch (Exception e) {
                 valid = false;
                 output = "Failure occurred: " + e;
-                log.warn("i>clicker: " + output, e);
+                log.warn("i>clicker: {}", output, e);
                 status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
             }
+
             if (restDebug) {
                 String extra = "";
+
                 if (!valid) {
                     extra = ", o=" + output;
                 }
-                log.info("iclicker REST debugging: DONE (s="+status+", v="+valid+extra+")");
+
+                log.info("iclicker REST debugging: DONE (s={}, v={}{})", status, valid, extra);
             }
         }
         if (valid) {
@@ -378,23 +402,23 @@ public class RestServlet extends HttpServlet {
             // add helpful info to the output
             String msg = "ERROR "+status+": Invalid request ("
                 + req.getMethod()+" "+req.getContextPath()+req.getServletPath()+path+")" 
-            	+ "\n\n=INFO========================================================================================\n"
-            	+ output
-            	+ "\n\n-HELP----------------------------------------------------------------------------------------\n"
-            	+ "Valid request paths include the following (without the servlet prefix: "+req.getContextPath()+req.getServletPath()+"):\n"
-            	+ "POST /authenticate             - authenticate by sending credentials ("+LOGIN+","+PASSWORD+") \n"
+                + "\n\n=INFO========================================================================================\n"
+                + output
+                + "\n\n-HELP----------------------------------------------------------------------------------------\n"
+                + "Valid request paths include the following (without the servlet prefix: "+req.getContextPath()+req.getServletPath()+"):\n"
+                + "POST /authenticate             - authenticate by sending credentials ("+LOGIN+","+PASSWORD+") \n"
                 + "                                 return status 204 (valid login) \n"
                 + "POST /verifykey                - check the encoded key is valid and matches the shared key \n"
                 + "                                 return 200 if valid OR 501 if SSO not enabled OR 400/401 if key is bad \n"
                 + "POST /register                 - Add a new clicker registration, return 200 for success or 400 with \n"
                 + "                                 registration response (XML) for failure \n"
-            	+ "GET  /courses                  - returns the list of courses for the current user (XML) \n"
+                + "GET  /courses                  - returns the list of courses for the current user (XML) \n"
                 + "GET  /students/{courseId}      - returns the list of student enrollments for the given course (XML) \n"
                 + "                                 or 403 if user is not an instructor in the specified course \n"
-            	+ "POST /gradebook/{courseId}     - send the gradebook data into the system, returns errors on failure (XML) \n"
+                + "POST /gradebook/{courseId}     - send the gradebook data into the system, returns errors on failure (XML) \n"
                 + "                                 or 'True' if no errors, 400 if the xml is missing or courseid is invalid, \n"
                 + "                                 403 if user is not an instructor in the specified course \n"
-            	+ "\n"
+                + "\n"
                 + " - Authenticate by sending credentials ("+LOGIN+","+PASSWORD+") or by sending a valid session id ("+SESSION_ID+") in the request parameters \n"
                 + " -- SSO authentication requires an encoded key ("+SSO_KEY+") in the request parameters \n"
                 + " -- The response headers will include the sessionId when credentials are valid \n"
@@ -404,7 +428,6 @@ public class RestServlet extends HttpServlet {
                 + " - All endpoints return 403 if user is not an instructor \n";
             res.setContentLength(msg.length());
             res.getWriter().print(msg);
-            //res.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
         }
     }
 
@@ -415,9 +438,11 @@ public class RestServlet extends HttpServlet {
      */
     private String getXMLData(HttpServletRequest req) {
         String xml = req.getParameter(XML_DATA);
-        if (xml == null || "".equals(xml)) {
+
+        if (StringUtils.isBlank(xml)) {
             xml = HttpRESTUtils.getRequestBody(req);
         }
+
         return xml;
     }
 
@@ -429,32 +454,39 @@ public class RestServlet extends HttpServlet {
      */
     private String getAndCheckCurrentUser(String msg) {
         String userId = currentUser();
+
         if (userId == null) {
-            throw new SecurityException(
-                    "Only logged in users can " + msg);
+            throw new SecurityException("Only logged in users can " + msg);
         }
+
         if (! isAdmin(userId) && ! isInstructor(userId)) {
             throw new SecurityException("Only instructors can " + msg);
         }
+
         return userId;
     }
 
     private void handleAuthN(HttpServletRequest req, HttpServletResponse res) {
         HttpAuth auth = HttpRESTUtils.extractRequestAuth(req, LOGIN, PASSWORD); // support basic and params auth
         String sessionId = req.getParameter(SESSION_ID);
+
         if (auth != null && auth.getLoginName() != null) {
             String ssoKey = req.getParameter(SSO_KEY); // might return a null
             sessionId = getLogic().authenticate(auth.getLoginName(), auth.getPassword(), ssoKey);
+
             if (sessionId == null) {
                 throw new SecurityException("Invalid login credentials ("+LOGIN+","+PASSWORD+") supplied");
             }
         } else if (sessionId != null && sessionId.length() > 1) {
             boolean valid = getLogic().getExternalLogic().validateSessionId(sessionId, true);
+
             if (! valid) {
                 throw new SecurityException("Invalid "+SESSION_ID+" provided, session may have expired, send new login credentials");
             }
         }
+
         String currentUser = currentUser();
+
         if (currentUser != null) {
             res.setHeader(SESSION_ID, sessionId);
             res.setHeader("_userId", currentUser());
@@ -466,17 +498,11 @@ public class RestServlet extends HttpServlet {
     }
 
     private boolean isAdmin(String userId) {
-        if (getLogic().getExternalLogic().isUserAdmin(userId)) {
-            return true;
-        }
-        return false;
+        return getLogic().getExternalLogic().isUserAdmin(userId);
     }
 
     private boolean isInstructor(String userId) {
-        if (getLogic().getExternalLogic().isUserInstructor(userId)) {
-            return true;
-        }
-        return false;
+        return getLogic().getExternalLogic().isUserInstructor(userId);
     }
 
 }

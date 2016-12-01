@@ -16,17 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.dao;
+package org.sakaiproject.iclicker.impl.dao;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.MySQLDialect;
 import org.hibernate.dialect.Oracle10gDialect;
 import org.hibernate.engine.SessionFactoryImplementor;
 import org.sakaiproject.genericdao.api.search.Search;
 import org.sakaiproject.genericdao.hibernate.HibernateGeneralGenericDao;
-import org.sakaiproject.iclicker.model.ClickerLock;
+import org.sakaiproject.iclicker.api.dao.IClickerDao;
+import org.sakaiproject.iclicker.model.dao.ClickerLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.List;
@@ -35,14 +37,10 @@ import java.util.List;
  * Implementations of any specialized DAO methods from the specialized DAO 
  * that allows the developer to extend the functionality of the generic dao package,
  * this handles all data persistence for the application
- *
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
-public class IClickerDaoImpl
-        extends HibernateGeneralGenericDao
-        implements IClickerDao {
+public class IClickerDaoImpl extends HibernateGeneralGenericDao implements IClickerDao {
 
-    private static final Log log = LogFactory.getLog(IClickerDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(IClickerDaoImpl.class);
 
     public void init() {
         log.debug("init");
@@ -57,11 +55,10 @@ public class IClickerDaoImpl
                 log.info("Updated the iclicker_registration table in ORACLE");
             }
         } catch (Exception e) {
-            log.error("Unable to alter i>clicker iclicker_registration table, you will need to manually alter the clickerId column to 16 chars long (from 8 chars)");
+            log.error("Unable to alter i>clicker iclicker_registration table, you will need to manually alter the clickerId column to 16 chars long (from 8 chars)", e);
         }
 
     }
-
 
     /**
      * Allows a lock to be obtained that is system wide,
@@ -78,12 +75,10 @@ public class IClickerDaoImpl
      * @return true if a lock was obtained, false if not, null if failure
      */
     public Boolean obtainLock(String lockId, String executerId, long timePeriod) {
-        if (executerId == null ||
-                    "".equals(executerId)) {
+        if (StringUtils.isBlank(executerId)) {
             throw new IllegalArgumentException("The executer Id must be set");
         }
-        if (lockId == null ||
-                    "".equals(lockId)) {
+        if (StringUtils.isBlank(lockId)) {
             throw new IllegalArgumentException("The lock Id must be set");
         }
 
@@ -92,9 +87,11 @@ public class IClickerDaoImpl
         try {
             // check the lock
             List<ClickerLock> locks = findBySearch(ClickerLock.class, new Search("name", lockId) );
+
             if (locks.size() > 0) {
                 // check if this is my lock, if not, then exit, if so then go ahead
                 ClickerLock lock = locks.get(0);
+
                 if (lock.getHolder().equals(executerId)) {
                     obtainedLock = true;
                     // if this is my lock then update it immediately
@@ -104,6 +101,7 @@ public class IClickerDaoImpl
                 } else {
                     // not the lock owner but we can still get the lock
                     long validTime = lock.getLastModified().getTime() + timePeriod + 100;
+
                     if (System.currentTimeMillis() > validTime) {
                         // the old lock is no longer valid so we are taking it
                         obtainedLock = true;
@@ -126,7 +124,7 @@ public class IClickerDaoImpl
         } catch (RuntimeException e) {
             obtainedLock = null; // null indicates the failure
             cleanupLockAfterFailure(lockId);
-            log.fatal("Lock obtaining failure for lock ("+lockId+"): " + e.getMessage(), e);
+            log.error("Lock obtaining failure for lock ({}): {}", lockId, e.getMessage(), e);
         }
 
         return obtainedLock;
@@ -144,12 +142,10 @@ public class IClickerDaoImpl
      * @return true if a lock was released, false if not, null if failure
      */
     public Boolean releaseLock(String lockId, String executerId) {
-        if (executerId == null ||
-                    "".equals(executerId)) {
+        if (StringUtils.isBlank(executerId)) {
             throw new IllegalArgumentException("The executer Id must be set");
         }
-        if (lockId == null ||
-                    "".equals(lockId)) {
+        if (StringUtils.isBlank(lockId)) {
             throw new IllegalArgumentException("The lock Id must be set");
         }
 
@@ -158,9 +154,11 @@ public class IClickerDaoImpl
         try {
             // check the lock
             List<ClickerLock> locks = findBySearch(ClickerLock.class, new Search("name", lockId) );
+
             if (locks.size() > 0) {
                 // check if this is my lock, if not, then exit, if so then go ahead
                 ClickerLock lock = locks.get(0);
+
                 if (lock.getHolder().equals(executerId)) {
                     releasedLock = true;
                     // if this is my lock then remove it immediately
@@ -173,12 +171,11 @@ public class IClickerDaoImpl
         } catch (RuntimeException e) {
             releasedLock = null; // null indicates the failure
             cleanupLockAfterFailure(lockId);
-            log.fatal("Lock releasing failure for lock ("+lockId+"): " + e.getMessage(), e);
+            log.error("Lock releasing failure for lock ({}): {}", lockId, e.getMessage(), e);
         }
 
         return releasedLock;
     }
-
 
     /**
      * Cleans up lock if there was a failure
@@ -187,13 +184,14 @@ public class IClickerDaoImpl
      */
     private void cleanupLockAfterFailure(String lockId) {
         getHibernateTemplate().clear(); // cancel any pending operations
+
         // try to clear the lock if things died
         try {
             List<ClickerLock> locks = findBySearch(ClickerLock.class, new Search("name", lockId) );
             getHibernateTemplate().deleteAll(locks);
             getHibernateTemplate().flush();
         } catch (Exception ex) {
-            log.error("Could not cleanup the lock ("+lockId+") after failure: " + ex.getMessage(), ex);
+            log.error("Could not cleanup the lock ({}) after failure: {}", lockId, ex.getMessage(), ex);
         }
     }
 

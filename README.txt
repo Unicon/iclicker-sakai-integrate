@@ -18,8 +18,7 @@ Administrators
 
 Sakai Compatibility
 -------------------
-This version of the plug-in works with Sakai v2.8 or newer (including Sakai 10) and supports single sign-on. Users running Sakai v2.3-2.7
-without SSO may use the previous version of the plug-in. Installations of Sakai older than version 2.3 are not supported by 
+This version of the plug-in works with Sakai 11 or newer and supports single sign-on. Installations of Sakai older than version 11 are not supported by 
 the i>clicker integrate plug-in.
 
     **Note on EntityBroker**
@@ -38,21 +37,12 @@ the i>clicker integrate plug-in.
         Caused by: java.lang.NoClassDefFoundError: org/sakaiproject/entitybroker/entityprovider/capabilities/Describeable
             at java.lang.ClassLoader.defineClass1(Native Method)
 
-Download Binary
----------------
-There are binary war files available in the Sakai maven repository: 
-    https://source.sakaiproject.org/maven2/org/sakaiproject/iclicker/
-
-    **Released version** - https://source.sakaiproject.org/maven2/org/sakaiproject/iclicker/1.3/iclicker-1.3.war
-
-    **NOTE:** Make sure you rename the war file to **iclicker.war** before you deploy it to the Sakai installation.
-
 
 Build
 -----
 The source code for this plugin is located at https://source.sakaiproject.org/contrib/iclicker/
 
-Build the default version of the app (should work with Sakai 2.6-2.9) by running this command from the location of this README ::
+Build the default version of the app by running this command from the location of this README ::
 
     mvn clean install
 
@@ -67,7 +57,7 @@ A.  Execute the maven sakai deployment command from the location of this README 
 
     This should copy the war file into the sakai tomcat instance.
 
-B.  Manually copy the war file (built or downloaded) into your servlet container ::
+B.  Manually copy the war file into your servlet container ::
 
         cp target/iclicker.war {your servlet container war file location}
 
@@ -164,36 +154,3 @@ The REST feeds vary depending on the version of Sakai being used.
     The source for released versions can be found at https://source.sakaiproject.org/svn/entitybroker/tags/. 
     See the `Sakai EntityBroker System <http://confluence.sakaiproject.org/x/E4D3>`_ page for installation
     instructions (it is the same process as `Installing Sakai Contrib Tools <http://confluence.sakaiproject.org/x/JwA5Ag>`_).
-
-
-Release Process
----------------
-The code can be tagged and released by following this process.
-
-    1. Create the tag for the 2.5 version ::
-
-        mvn release:clean -B release:prepare -Dtag=iclicker-1.0 -DreleaseVersion=1.0 -DdevelopmentVersion=1.1-SNAPSHOT -Psakai-2.5
-
-    2. Upload the war for the 2.5 version ::
-    
-        mvn release:perform -Dgoals=deploy -Psakai-2.5
-
-    3. Create the war for the 2.6 version of the plugin ::
-    
-        mvn release:clean -B release:prepare -Dtag=iclicker-1.0-26x -DreleaseVersion=1.0-26x -DdevelopmentVersion=1.1-SNAPSHOT -Psakai-2.6
-
-    2. Upload the war for the 2.6 version of the plugin ::
-    
-        mvn release:perform -Dgoals=deploy -Psakai-2.6
-
-
-Help
-----
-Send questions or comments to:
-Chad Moeller (chad.moeller@macmillan.com), i>clicker Sales Engineer
-
-This document is in `reST (reStructuredText) <http://docutils.sourceforge.net/rst.html>`_ format 
-and can be converted to html using the `online converter <http://www.tele3.cz/jbar/rest/rest.html>`_
-or the `rst2a converter api <http://rst2a.com/api/>`_ or a command line tool (rst2html.py README README.html)
-
--Aaron Zeckoski (azeckoski @ gmail.com) (azeckoski @ vt.edu)

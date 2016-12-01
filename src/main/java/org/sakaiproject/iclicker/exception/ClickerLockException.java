@@ -16,21 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.logic;
+package org.sakaiproject.iclicker.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * This is the 2.6 version of the external logic service
+ * Exception which indicates that the lock could not be obtained,
+ * most likely because it is already in use 
  */
-public class ExternalLogic extends AbstractExternalLogic {
+public class ClickerLockException extends RuntimeException {
 
-    private static final Logger log = LoggerFactory.getLogger(ExternalLogic.class);
+    private static final long serialVersionUID = 1L;
 
-    public void init() {
-        super.init();
-        log.info("INIT");
+    public String name;
+    public String holder;
+
+    public ClickerLockException(String message, String name, String holder) {
+        super(message);
+        this.name = name;
+        this.holder = holder;
     }
 
 }

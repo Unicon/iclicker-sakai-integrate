@@ -16,15 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.dao;
+package org.sakaiproject.iclicker.impl.dao;
 
 import junit.framework.Assert;
 
 import org.sakaiproject.genericdao.api.search.Restriction;
 import org.sakaiproject.genericdao.api.search.Search;
-import org.sakaiproject.iclicker.logic.FakeDataPreload;
-import org.sakaiproject.iclicker.model.ClickerRegistration;
-import org.sakaiproject.iclicker.model.ClickerUserKey;
+import org.sakaiproject.iclicker.api.dao.IClickerDao;
+import org.sakaiproject.iclicker.impl.logic.FakeDataPreload;
+import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
+import org.sakaiproject.iclicker.model.dao.ClickerUserKey;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.AbstractTransactionalSpringContextTests;
 
@@ -62,14 +63,14 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
     // run this before each test starts and as part of the transaction
     protected void onSetUpInTransaction() {
         // load the spring created dao class bean from the Spring Application Context
-        dao = (IClickerDao) applicationContext.getBean("org.sakaiproject.iclicker.dao.IClickerDao");
+        dao = (IClickerDao) applicationContext.getBean("org.sakaiproject.iclicker.api.dao.IClickerDao");
         if (dao == null) {
             throw new NullPointerException("DAO could not be retrieved from spring context");
         }
 
         // load up the test data preloader from spring
         tdp = (FakeDataPreload) applicationContext
-                .getBean("org.sakaiproject.iclicker.logic.test.FakeDataPreload");
+                .getBean("org.sakaiproject.iclicker.impl.logic.test.FakeDataPreload");
         if (tdp == null) {
             throw new NullPointerException(
                     "FakeDataPreload could not be retrieved from spring context");

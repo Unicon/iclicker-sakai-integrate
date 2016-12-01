@@ -19,4 +19,4 @@
 
 --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%><%@ taglib prefix="x" uri="http://java.sun.com/jsp/jstl/xml"%><%/*
-*/%><%@ page import="org.springframework.web.context.WebApplicationContext"%><%@ page import="org.springframework.web.context.support.WebApplicationContextUtils"%><%@ page import="org.sakaiproject.iclicker.tool.ToolController"%><%@ page import="org.sakaiproject.iclicker.model.ClickerRegistration"%>
+*/%><%@ page import="org.springframework.web.context.WebApplicationContext"%><%@ page import="org.springframework.web.context.support.WebApplicationContextUtils"%><%@ page import="org.sakaiproject.iclicker.tool.ToolController"%><%@ page import="org.sakaiproject.iclicker.model.dao.ClickerRegistration"%>

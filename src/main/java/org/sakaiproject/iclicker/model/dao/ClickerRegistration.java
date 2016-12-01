@@ -16,74 +16,68 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Sakai integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.sakaiproject.iclicker.model;
+package org.sakaiproject.iclicker.model.dao;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import org.apache.commons.lang.StringUtils;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * This represents a clicker (iclicker remote) registration which is stored in the local Sakai DB,
  * this registration can be controlled by the owner or the system admin only <br/>
  * Registrations can be viewed by the instructor of the courses the owner is in <br/>
  * Anyone in the system can create a registration
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class ClickerRegistration implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long id;
-    private String clickerId;
+    @Setter @Getter private Long id;
+    @Setter @Getter private String clickerId;
     /**
      * Sakai userId (internal, not EID/USERNAME)
      */
-    private String ownerId;
+    @Setter @Getter private String ownerId;
     /**
      * [OPTIONAL] Sakai course ID
      */
-    private String locationId;
+
+    @Setter @Getter private String locationId;
+
     /**
      * if this is true then the registration is effectively deleted (disabled)
      * and should not be returned as part of the data feeds,
      * it should still be displayed to the owner but not to others
      */
-    private boolean activated = true;
+    @Setter @Getter private boolean activated = true;
+
     /**
      * if this is true it means this registration came from the national system,
      * or has been synced with it
      */
-    private boolean national = false;
-    private Date dateCreated;
-    private Date dateModified;
+    @Setter @Getter private boolean national = false;
+
+    @Setter @Getter private Date dateCreated;
+    @Setter @Getter private Date dateModified;
 
     // NON-PERSISTENT
-    public String userDisplayName;
-    @SuppressWarnings("unused")
-    public String getUserDisplayName() {
-        return userDisplayName;
-    }
+    @Setter @Getter public String userDisplayName;
 
-    /**
-     * Default constructor
-     */
     public ClickerRegistration() {
     }
 
-    /**
-     * Minimal constructor
-     */
     public ClickerRegistration(String clickerId, String ownerId) {
         this(clickerId, ownerId, null);
     }
 
-    /**
-     * Full constructor
-     */
     public ClickerRegistration(String clickerId, String ownerId, String locationId) {
         this.clickerId = clickerId;
         this.ownerId = ownerId;
-        this.locationId = "".equals(locationId) ? null : locationId;
+        this.locationId = StringUtils.isBlank(locationId) ? null : locationId;
         this.dateCreated = new Date();
         this.dateModified = this.dateCreated;
     }
@@ -114,103 +108,52 @@ public class ClickerRegistration implements Serializable {
         int result = 1;
         result = prime * result + ((clickerId == null) ? 0 : clickerId.hashCode());
         result = prime * result + ((ownerId == null) ? 0 : ownerId.hashCode());
+
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+
+        if (getClass() != obj.getClass()) {
             return false;
+        }
+
         ClickerRegistration other = (ClickerRegistration) obj;
+
         if (id != null && other.id != null) {
-            // to make hibernate happy
             return id.equals(other.id);
         } else {
             if (clickerId == null) {
-                if (other.clickerId != null)
+                if (other.clickerId != null) {
                     return false;
-            } else if (!clickerId.equals(other.clickerId))
+                }
+            } else if (!clickerId.equals(other.clickerId)) {
                 return false;
+            }
+
             if (ownerId == null) {
-                if (other.ownerId != null)
+                if (other.ownerId != null) {
                     return false;
-            } else if (!ownerId.equals(other.ownerId))
+                }
+            } else if (!StringUtils.equals(ownerId, other.ownerId)) {
                 return false;
+            }
         }
+
         return true;
     }
 
     @Override
     public String toString() {
         return this.clickerId + ":uid=" + this.ownerId + ":" + this.dateModified;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getClickerId() {
-        return clickerId;
-    }
-
-    public void setClickerId(String clickerId) {
-        this.clickerId = clickerId;
-    }
-
-    public String getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public String getLocationId() {
-        return locationId;
-    }
-
-    public void setLocationId(String locationId) {
-        this.locationId = "".equals(locationId) ? null : locationId;
-    }
-
-    public boolean isNational() {
-        return national;
-    }
-
-    public void setNational(boolean national) {
-        this.national = national;
-    }
-
-    public boolean isActivated() {
-        return activated;
-    }
-
-    public void setActivated(boolean activated) {
-        this.activated = activated;
-    }
-
-    public Date getDateCreated() {
-        return dateCreated;
-    }
-
-    public void setDateCreated(Date dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-
-    public Date getDateModified() {
-        return dateModified;
-    }
-
-    public void setDateModified(Date dateModified) {
-        this.dateModified = dateModified;
     }
 
 }

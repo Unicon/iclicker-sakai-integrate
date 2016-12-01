@@ -22,11 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.sakaiproject.iclicker.logic.Course;
+import org.sakaiproject.iclicker.impl.logic.FakeDataPreload;
 import org.sakaiproject.iclicker.logic.ExternalLogic;
-import org.sakaiproject.iclicker.logic.FakeDataPreload;
-import org.sakaiproject.iclicker.logic.Student;
-import org.sakaiproject.iclicker.logic.User;
+import org.sakaiproject.iclicker.model.Course;
+import org.sakaiproject.iclicker.model.Student;
+import org.sakaiproject.iclicker.model.User;
 
 /**
  * Stub class for the external logic impl (for testing)
@@ -177,7 +177,7 @@ public class ExternalLogicStub extends ExternalLogic {
 
     @Override
     public User getUser(String userId) {
-        User user = new org.sakaiproject.iclicker.logic.User(userId,
+        User user = new org.sakaiproject.iclicker.model.User(userId,
                 "eid-"+userId, "DisplayName-"+userId, userId+"-sortname", userId+"@email.com");
         user.fname = "First";
         user.lname = "Last"+userId;

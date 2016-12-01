@@ -745,4 +745,10 @@ public class FakeSite implements Site {
         return new Date();
     }
 
+    @Override
+    public Collection<Group> getGroupsWithMembers(String[] userIds) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

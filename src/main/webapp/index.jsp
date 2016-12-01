@@ -26,8 +26,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <%
-    String toolBaseCSS = org.sakaiproject.iclicker.tool.CSSUtils.getCssToolBase();
-    String toolCSS = org.sakaiproject.iclicker.tool.CSSUtils.getCssToolSkin((String)null);
+    String toolBaseCSS = org.sakaiproject.iclicker.utils.CSSUtils.getCssToolBase();
+    String toolCSS = org.sakaiproject.iclicker.utils.CSSUtils.getCssToolSkin((String)null);
 %>
 <script src="/library/js/headscripts.js" language="JavaScript" type="text/javascript"></script>
 <script src="javascript/jquery-1.11.0.min.js" language="JavaScript" type="text/javascript"></script>
