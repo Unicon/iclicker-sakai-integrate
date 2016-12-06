@@ -365,7 +365,7 @@ public abstract class AbstractExternalLogic {
         if (toEmails == null || toEmails.length == 0) {
             throw new IllegalArgumentException("toEmails must be set");
         }
-        if (fromEmail == null || "".equals(fromEmail)) {
+        if (StringUtils.isBlank(fromEmail)) {
             fromEmail = "\"<no-reply@" + serverConfigurationService.getServerName() + ">";
         }
 
@@ -550,7 +550,7 @@ public abstract class AbstractExternalLogic {
      * @return the course ID of the course they are an instructor for the student OR null if they are not
      */
     public String isInstructorOfUser(String studentUserId) {
-        if (studentUserId == null || "".equals(studentUserId)) {
+        if (StringUtils.isBlank(studentUserId)) {
             throw new IllegalArgumentException("studentUserId must be set");
         }
 

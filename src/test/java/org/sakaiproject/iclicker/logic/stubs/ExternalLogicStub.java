@@ -66,9 +66,9 @@ public class ExternalLogicStub extends ExternalLogic {
 
     @Override
     public String getLocationTitle(String locationId) {
-        if (locationId.equals(FakeDataPreload.LOCATION1_ID)) {
+        if (StringUtils.equals(locationId, FakeDataPreload.LOCATION1_ID)) {
             return FakeDataPreload.LOCATION1_TITLE;
-        } else if (locationId.equals(FakeDataPreload.LOCATION2_ID)) {
+        } else if (StringUtils.equals(locationId, FakeDataPreload.LOCATION2_ID)) {
             return FakeDataPreload.LOCATION2_TITLE;
         }
 

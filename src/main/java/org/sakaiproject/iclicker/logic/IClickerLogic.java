@@ -324,7 +324,7 @@ public class IClickerLogic {
         ));
 
         if (cuk != null) {
-            if (userKey.equals(cuk.getUserKey())) {
+            if (StringUtils.equals(userKey, cuk.getUserKey())) {
                 valid = true;
             }
         }
@@ -424,7 +424,7 @@ public class IClickerLogic {
             byte[] sha1Bytes = DigestUtils.sha(singleSignOnSharedkey + ":" + timestamp);
             String sha1Hex = Hex.encodeHexString(sha1Bytes);
 
-            if (! actualKey.equals(sha1Hex)) {
+            if (!StringUtils.equals(actualKey, sha1Hex)) {
                 throw new SecurityException("i>clicker encoded shared key ("+key+") does not match with the key ("+sha1Hex+") in Sakai (using timestamp: "+timestamp+")");
             }
 
@@ -619,7 +619,7 @@ public class IClickerLogic {
         } else if (externalLogic.isUserAdmin(userId)) {
             // the system super user can read any item
             return true;
-        } else if (locationId.equals(item.getLocationId())) {
+        } else if (StringUtils.equals(locationId, item.getLocationId())) {
             // users with permission in the specified site can modify items from that site
             return true;
         } else if (externalLogic.isInstructorOfUser(item.getOwnerId()) != null) {
@@ -1596,7 +1596,7 @@ public class IClickerLogic {
                         if (score.getError() != null) {
                             String lineitem = lineitems.get(gbItem.getName());
 
-                            if (AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR.equals(score.getError())) {
+                            if (StringUtils.equals(AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR, score.getError())) {
                                 String key = AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR;
 
                                 if (invalidUserIds.add(score.getUserId())) {
@@ -1609,7 +1609,7 @@ public class IClickerLogic {
                                     StringBuilder sbe = errorItems.get(key);
                                     sbe.append("    <user id=\"").append(score.getUserId()).append("\" />\n");
                                 }
-                            } else if (AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS.equals(score.getError())) {
+                            } else if (StringUtils.equals(AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS, score.getError())) {
                                 String key = AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS;
 
                                 if (! errorItems.containsKey(key)) {
@@ -1620,7 +1620,7 @@ public class IClickerLogic {
                                 StringBuilder sbe = errorItems.get(key);
                                 String li = lineitem.replace(SCORE_KEY, score.getGrade());
                                 sbe.append("    <user id=\"").append(score.getUserId()).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
-                            } else if (AbstractExternalLogic.SCORE_UPDATE_ERRORS.equals(score.getError())) {
+                            } else if (StringUtils.equals(AbstractExternalLogic.SCORE_UPDATE_ERRORS, score.getError())) {
                                 String key = AbstractExternalLogic.SCORE_UPDATE_ERRORS;
 
                                 if (! errorItems.containsKey(key)) {
@@ -1754,7 +1754,7 @@ public class IClickerLogic {
      * the exception will indicate the type of validation failure
      */
     public String validateClickerId(String clickerId, String lastName) {
-        if (clickerId == null || "".equals(clickerId)) {
+        if (StringUtils.isBlank(clickerId)) {
             throw new ClickerIdInvalidException("empty or null clickerId", Failure.EMPTY, clickerId);
         }
 
@@ -1781,7 +1781,7 @@ public class IClickerLogic {
             String currentGOKey = clickerId+":"+lastName;
             String lastValidKey = this.lastValidGOKey.get();
 
-            if (!currentGOKey.equals(lastValidKey)) {
+            if (!StringUtils.equals(currentGOKey, lastValidKey)) {
                 this.lastValidGOKey.remove();
                 wsGoVerifyId(clickerId, lastName); // ClickerIdInvalidException exception if invalid (or RT exception)
                 this.lastValidGOKey.set(currentGOKey);
@@ -1790,7 +1790,7 @@ public class IClickerLogic {
             // remote ids
             clickerId = clickerId.trim().toUpperCase();
 
-            if (! clickerId.matches("[0-9A-F]+")) {
+            if (!clickerId.matches("[0-9A-F]+")) {
                 throw new ClickerIdInvalidException("clickerId can only contains A-F and 0-9", Failure.CHARS, clickerId);
             }
 
@@ -1798,7 +1798,7 @@ public class IClickerLogic {
                 clickerId = "0" + clickerId;
             }
 
-            if (CLICKERID_SAMPLE.equals(clickerId)) {
+            if (StringUtils.equals(CLICKERID_SAMPLE, clickerId)) {
                 throw new ClickerIdInvalidException("clickerId cannot match the sample ID", Failure.SAMPLE, clickerId);
             }
 
