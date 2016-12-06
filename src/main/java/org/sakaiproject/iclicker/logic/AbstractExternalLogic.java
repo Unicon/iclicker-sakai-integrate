@@ -601,10 +601,10 @@ public abstract class AbstractExternalLogic {
         }
 
         Gradebook gb = new Gradebook(gbID);
-        gb.students = getStudentsForCourse(siteId);
+        gb.setStudents(getStudentsForCourse(siteId));
         Map<String, String> studentUserIds = new ConcurrentHashMap<>();
 
-        for (Student student : gb.students) {
+        for (Student student : gb.getStudents()) {
             studentUserIds.put(student.getUserId(), student.getUsername());
         }
 
@@ -615,14 +615,14 @@ public abstract class AbstractExternalLogic {
 
             for (Assignment assignment : gbitems) {
                 GradebookItem gbItem = makeGradebookItemFromAssignment(gbID, assignment, studentUserIds, studentIds);
-                gb.items.add(gbItem);
+                gb.getItems().add(gbItem);
             }
         } else {
             Assignment assignment = gradebookService.getAssignment(gbID, gbItemName);
 
             if (assignment != null) {
                 GradebookItem gbItem = makeGradebookItemFromAssignment(gbID, assignment, studentUserIds, studentIds);
-                gb.items.add(gbItem);
+                gb.getItems().add(gbItem);
             } else {
                 throw new IllegalArgumentException("Invalid gradebook item name ("+gbItemName+"), no item with this name found in cource ("+siteId+")");
             }
@@ -634,29 +634,23 @@ public abstract class AbstractExternalLogic {
     private GradebookItem makeGradebookItemFromAssignment(String gbID, Assignment assignment, Map<String, String> studentUserIds, ArrayList<String> studentIds) {
         // build up the items listing
         GradebookItem gbItem = new GradebookItem(gbID, assignment.getName(), assignment.getPoints(), assignment.getDueDate(), assignment.getExternalAppName(), assignment.isReleased());
-        gbItem.id = assignment.getId().toString();
-        /*
-         *  We have to iterate through each student and get the grades out... 
-         *  2.5 gradebook service has problems
-         */
+        gbItem.setId(assignment.getId().toString());
+
         for (String studentId : studentIds) {
-            // too expensive: if (gradebookService.getGradeViewFunctionForUserForStudentForItem(gbID, assignment.getId(), studentId) == null) {
-            // Double grade = gradebookService.getAssignmentScore(gbID, assignment.getName(), studentId);
             String grade = gradebookService.getAssignmentScoreString(gbID, assignment.getId(), studentId);
 
             if (grade != null) {
                 GradebookItemScore score = new GradebookItemScore(assignment.getId().toString(), studentId, grade);
-                score.username = studentUserIds.get(studentId);
-                // CommentDefinition cd = gradebookService.getAssignmentScoreComment(gbID, assignment.getName(), studentId);
+                score.setUsername(studentUserIds.get(studentId));
                 CommentDefinition cd = gradebookService.getAssignmentScoreComment(gbID, assignment.getId(), studentId);
 
                 if (cd != null) {
-                    score.comment = cd.getCommentText();
-                    score.recorded = cd.getDateRecorded();
-                    score.graderUserId = cd.getGraderUid();
+                    score.setComment(cd.getCommentText());
+                    score.setRecorded(cd.getDateRecorded());
+                    score.setGraderUserId(cd.getGraderUid());
                 }
 
-                gbItem.scores.add(score);
+                gbItem.getScores().add(score);
             }
         }
 
@@ -677,26 +671,26 @@ public abstract class AbstractExternalLogic {
         if (gbItem == null) {
             throw new IllegalArgumentException("gbItem cannot be null");
         }
-        if (StringUtils.isBlank(gbItem.gradebookId)) {
+        if (StringUtils.isBlank(gbItem.getGradebookId())) {
             throw new IllegalArgumentException("gbItem must have the gradebookId set");
         }
-        if (StringUtils.isBlank(gbItem.name)) {
+        if (StringUtils.isBlank(gbItem.getName())) {
             throw new IllegalArgumentException("gbItem must have the name set");
         }
 
-        String gradebookUid = gbItem.gradebookId;
+        String gradebookUid = gbItem.getGradebookId();
         Assignment assignment = null;
 
         // find by name
-        if (gradebookService.isAssignmentDefined(gradebookUid, gbItem.name)) {
-            assignment = gradebookService.getAssignment(gradebookUid, gbItem.name);
+        if (gradebookService.isAssignmentDefined(gradebookUid, gbItem.getName())) {
+            assignment = gradebookService.getAssignment(gradebookUid, gbItem.getName());
         }
 
         // in the pre-2.6 GB we can only lookup by name
         if (assignment == null) {
             // try to find by name
-            if (gradebookService.isAssignmentDefined(gradebookUid, gbItem.name)) {
-                assignment = gradebookService.getAssignment(gradebookUid, gbItem.name);
+            if (gradebookService.isAssignmentDefined(gradebookUid, gbItem.getName())) {
+                assignment = gradebookService.getAssignment(gradebookUid, gbItem.getName());
             }
         }
 
@@ -708,78 +702,73 @@ public abstract class AbstractExternalLogic {
                 assignment = new Assignment();
                 assignment.setExternallyMaintained(false); // cannot modify it later if true
                 // assign values
-                assignment.setDueDate(gbItem.dueDate);
-                assignment.setExternalAppName(gbItem.type);
-                //assignment.setExternalId(gbItem.type);
-                assignment.setName(gbItem.name);
-                assignment.setPoints(gbItem.pointsPossible);
-                assignment.setReleased(gbItem.released);
+                assignment.setDueDate(gbItem.getDueDate());
+                assignment.setExternalAppName(gbItem.getType());
+                assignment.setName(gbItem.getName());
+                assignment.setPoints(gbItem.getPointsPossible());
+                assignment.setReleased(gbItem.isReleased());
                 gradebookService.addAssignment(gradebookUid, assignment);
-                // SecurityException, AssignmentHasIllegalPointsException, RuntimeException
             } else {
                 assignment.setExternallyMaintained(false); // cannot modify it later if true
 
                 // assign new values to existing assignment
-                if (gbItem.dueDate != null) {
-                    assignment.setDueDate(gbItem.dueDate);
+                if (gbItem.getDueDate() != null) {
+                    assignment.setDueDate(gbItem.getDueDate());
                 }
 
-                if (gbItem.type != null) {
-                    assignment.setExternalAppName(gbItem.type);
-                    //assignment.setExternalId(gbItem.type);
+                if (gbItem.getType() != null) {
+                    assignment.setExternalAppName(gbItem.getType());
                 }
 
-                if (gbItem.pointsPossible != null && gbItem.pointsPossible >= 0d) {
-                    assignment.setPoints(gbItem.pointsPossible);
+                if (gbItem.getPointsPossible() != null && gbItem.getPointsPossible() >= 0d) {
+                    assignment.setPoints(gbItem.getPointsPossible());
                 }
 
                 gradebookService.updateAssignment(gradebookUid, assignment.getId(), assignment);
             }
-        } catch (SecurityException e) {
-            throw e; // rethrow
-        } catch (RuntimeException e) {
-            throw new IllegalArgumentException("Invalid assignment ("+assignment+"): cannot create: " + e, e);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid assignment (" + assignment + "): cannot create: ", e);
         }
 
-        gbItem.id = assignment.getId()+""; // avoid NPE
+        gbItem.setId(assignment.getId() + ""); // avoid NPE
         int errorsCount = 0;
 
-        if (gbItem.scores != null && !gbItem.scores.isEmpty()) {
+        if (gbItem.getScores() != null && !gbItem.getScores().isEmpty()) {
             // now update scores if there are any to update, 
             // this will not remove scores and will only add new ones
-            for (GradebookItemScore score : gbItem.scores) {
-                if (StringUtils.isBlank(score.username) && StringUtils.isBlank(score.userId)) {
-                    score.error = USER_DOES_NOT_EXIST_ERROR; //"USER_MISSING_ERROR";
+            for (GradebookItemScore score : gbItem.getScores()) {
+                if (StringUtils.isBlank(score.getUsername()) && StringUtils.isBlank(score.getUserId())) {
+                    score.setError(USER_DOES_NOT_EXIST_ERROR); //"USER_MISSING_ERROR";
                     continue;
                 }
 
-                String studentId = score.userId;
+                String studentId = score.getUserId();
 
-                if (studentId == null || "".equals(studentId)) {
+                if (StringUtils.isBlank(studentId)) {
                     // convert student EID to ID
                     try {
-                        studentId = userDirectoryService.getUserId(score.username);
-                        score.userId = studentId;
+                        studentId = userDirectoryService.getUserId(score.getUsername());
+                        score.setUserId(studentId);
                     } catch (UserNotDefinedException e) {
-                        score.error = USER_DOES_NOT_EXIST_ERROR;
+                        score.setError(USER_DOES_NOT_EXIST_ERROR);
                         errorsCount++;
                         continue;
                     }
                 } else {
                     // validate the student ID
                     try {
-                        score.username = userDirectoryService.getUserEid(studentId);
+                        score.setUsername(userDirectoryService.getUserEid(studentId));
                     } catch (UserNotDefinedException e) {
-                        score.error = USER_DOES_NOT_EXIST_ERROR;
+                        score.setError(USER_DOES_NOT_EXIST_ERROR);
                         errorsCount++;
                         continue;
                     }
                 }
-                score.assignId(gbItem.id, studentId);
+                score.assignId(gbItem.getId(), studentId);
 
                 // null/blank scores are not allowed
-                if (StringUtils.isBlank(score.grade)) {
-                    score.error = "NO_SCORE_ERROR";
+                if (StringUtils.isBlank(score.getGrade())) {
+                    score.setError("NO_SCORE_ERROR");
                     errorsCount++;
                     continue;
                 }
@@ -787,30 +776,29 @@ public abstract class AbstractExternalLogic {
                 Double dScore;
 
                 try {
-                    dScore = Double.valueOf(score.grade);
+                    dScore = Double.valueOf(score.getGrade());
                 } catch (NumberFormatException e) {
-                    score.error = "SCORE_INVALID";
+                    score.setError("SCORE_INVALID");
                     errorsCount++;
                     continue;
                 }
 
                 // Student Score should not be greater than the total points possible
                 if (dScore > assignment.getPoints()) {
-                    score.error = POINTS_POSSIBLE_UPDATE_ERRORS;
+                    score.setError(POINTS_POSSIBLE_UPDATE_ERRORS);
                     errorsCount++;
                     continue;
                 }
 
                 try {
                     // check against existing score
-                    // Double currentScore = gradebookService.getAssignmentScore(gradebookUid, gbItem.name, studentId);
                     String currentScore = gradebookService.getAssignmentScoreString(gradebookUid, assignment.getId(), studentId);
 
                     if (currentScore != null) {
                         Double currentScoreDouble = Double.valueOf(currentScore);
 
                         if (dScore < currentScoreDouble) {
-                            score.error = SCORE_UPDATE_ERRORS;
+                            score.setError(SCORE_UPDATE_ERRORS);
                             errorsCount++;
                             continue;
                         }
@@ -818,23 +806,23 @@ public abstract class AbstractExternalLogic {
                     // null grade deletes the score
                     gradebookService.setAssignmentScoreString(gradebookUid, assignment.getId(), studentId, Double.toString(dScore), "i>clicker");
 
-                    if (StringUtils.isNotBlank(score.comment)) {
-                        gradebookService.setAssignmentScoreComment(gradebookUid, assignment.getId(), studentId, score.comment);
+                    if (StringUtils.isNotBlank(score.getComment())) {
+                        gradebookService.setAssignmentScoreComment(gradebookUid, assignment.getId(), studentId, score.getComment());
                     }
                 } catch (Exception e) {
                     // General errors, caused while performing updates (Tag: generalerrors)
-                    log.warn("Failure saving score ("+score+"): "+e);
-                    score.error = GENERAL_ERRORS;
+                    log.warn("Failure saving score ({}): ", score, e);
+                    score.setError(GENERAL_ERRORS);
                     errorsCount++;
                 }
             }
 
             // put the errors in the item
             if (errorsCount > 0) {
-                gbItem.scoreErrors = new HashMap<String, String>();
+                gbItem.setScoreErrors(new HashMap<>());
 
-                for (GradebookItemScore score : gbItem.scores) {
-                    gbItem.scoreErrors.put(score.id, score.error);
+                for (GradebookItemScore score : gbItem.getScores()) {
+                    gbItem.getScoreErrors().put(score.getId(), score.getError());
                 }
             }
         }

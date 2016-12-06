@@ -23,16 +23,19 @@ import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 
+import lombok.Getter;
+import lombok.Setter;
+
 
 /**
  * This holds the values of all the items in a gradebook and the users/scores
  */
 public class Gradebook {
-    public String id;
-    public String courseId;
+    @Setter @Getter private String id;
+    @Setter @Getter private String courseId;
 
-    public List<Student> students = new Vector<>();
-    public List<GradebookItem> items = new Vector<>();
+    @Setter @Getter private List<Student> students = new Vector<>();
+    @Setter @Getter private List<GradebookItem> items = new Vector<>();
 
     public Gradebook(String id) {
         this.id = id;
@@ -49,6 +52,7 @@ public class Gradebook {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
+
         return result;
     }
 

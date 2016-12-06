@@ -154,7 +154,7 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         } else {
             // use the iclicker XML format
             Course course = new Course(courseId, courseId);
-            course.students = students;
+            course.setStudents(students);
             String out = XML_HEADER + logic.encodeEnrollments(course);
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
@@ -294,7 +294,7 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             }
 
             Gradebook gb = logic.getCourseGradebook(courseId, gradeItemName);
-            gbItemOut = gb.items.get(0);
+            gbItemOut = gb.getItems().get(0);
         } else if (StringUtils.equalsIgnoreCase(Method.POST.toString(), view.getMethod()) || StringUtils.equalsIgnoreCase(Method.PUT.toString(), view.getMethod())) {
             ServletRequest request = requestGetter.getRequest();
 
@@ -326,14 +326,14 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             ConversionUtils cvu = ConversionUtils.getInstance();
             String gbItemName = (String) input.get("name");
             GradebookItem gbItemIn = new GradebookItem(courseId, gbItemName);
-            gbItemIn.pointsPossible = cvu.convert(input.get("pointsPossible"), Double.class);
-            gbItemIn.dueDate = cvu.convert(input.get("dueDate"), Date.class);
+            gbItemIn.setPointsPossible(cvu.convert(input.get("pointsPossible"), Double.class));
+            gbItemIn.setDueDate(cvu.convert(input.get("dueDate"), Date.class));
             List<Object> scores = cvu.convert(input.get("scores"), List.class);
 
             if (scores != null) {
                 for (Object o : scores) {
                     GradebookItemScore score = cvu.convert(o, GradebookItemScore.class);
-                    gbItemIn.scores.add( score );
+                    gbItemIn.getScores().add(score);
                 }
             }
 

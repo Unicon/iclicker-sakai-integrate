@@ -966,10 +966,10 @@ public class IClickerLogic {
                 Set<ClickerRegistration> crs = ownerToReg.get(student.getUserId());
 
                 if (crs == null || crs.isEmpty()) {
-                    student.clickerRegistered = Boolean.FALSE;
+                    student.setClickerRegistered(Boolean.FALSE);
                 } else {
-                    student.clickerRegistered = Boolean.TRUE;
-                    student.clickerRegistrations = crs;
+                    student.setClickerRegistered(Boolean.TRUE);
+                    student.setClickerRegistrations(crs);
                 }
             }
         }
@@ -1011,7 +1011,7 @@ public class IClickerLogic {
         if (courseId != null && courses.size() == 1) {
             // add in the students
             Course c = courses.get(0);
-            c.students = getStudentsForCourseWithClickerReg(c.id);
+            c.setStudents(getStudentsForCourseWithClickerReg(c.getId()));
         }
 
         return courses;
@@ -1037,7 +1037,7 @@ public class IClickerLogic {
      */
     public Gradebook getCourseGradebook(String courseId, String gbItemName) {
         Gradebook gb = externalLogic.getCourseGradebook(courseId, gbItemName);
-        gb.students = getStudentsForCourseWithClickerReg(courseId);
+        gb.setStudents(getStudentsForCourseWithClickerReg(courseId));
 
         return gb;
     }
@@ -1062,8 +1062,8 @@ public class IClickerLogic {
         ArrayList<GradebookItem> items = new ArrayList<>();
 
         if (gb != null) {
-            for (GradebookItem gradebookItem : gb.items) {
-                gradebookItem.gradebookId = gb.id;
+            for (GradebookItem gradebookItem : gb.getItems()) {
+                gradebookItem.setGradebookId(gb.getId());
                 items.add( saveGradebookItem(gradebookItem) );
             }
         }
@@ -1293,18 +1293,18 @@ public class IClickerLogic {
          */
 
         // first make the map of lineitems strings and scores
-        Map<String, String> lineitems = makeLineitemsMap(gradebook.items);
-        Map<String, GradebookItemScore> studentGradeitemScores = makeGBItemScoresMap(gradebook.items);
+        Map<String, String> lineitems = makeLineitemsMap(gradebook.getItems());
+        Map<String, GradebookItemScore> studentGradeitemScores = makeGBItemScoresMap(gradebook.getItems());
 
         // make XML
         StringBuilder sb = new StringBuilder();
         // now make the outer course stuff
         sb.append("<coursegradebook courseid=\"");
-        sb.append(escapeForXML(gradebook.courseId));
+        sb.append(escapeForXML(gradebook.getCourseId()));
         sb.append("\">\n");
 
         // loop through the students
-        for (Student student : gradebook.students) {
+        for (Student student : gradebook.getStudents()) {
             sb.append("  <user id=\"");
             sb.append(escapeForXML(student.getUsername()));
             sb.append("\" usertype=\"S\">\n");
@@ -1315,7 +1315,7 @@ public class IClickerLogic {
                 GradebookItemScore score = studentGradeitemScores.get(scoreKey);
 
                 if (score != null) {
-                    String lineitem = entry.getValue().replace(SCORE_KEY, score.grade);
+                    String lineitem = entry.getValue().replace(SCORE_KEY, score.getGrade());
                     sb.append("    ");
                     sb.append(lineitem);
                     sb.append("\n");
@@ -1337,8 +1337,8 @@ public class IClickerLogic {
 
         for (GradebookItem gbItem : gradebookItems) {
             // store the scores into a map as well
-            for (GradebookItemScore score : gbItem.scores) {
-                String key = score.userId + gbItem.name;
+            for (GradebookItemScore score : gbItem.getScores()) {
+                String key = score.getUserId() + gbItem.getName();
                 studentGradeitemScores.put(key, score);
             }
         }
@@ -1350,7 +1350,7 @@ public class IClickerLogic {
         LinkedHashMap<String, String> lineitems = new LinkedHashMap<>();
 
         for (GradebookItem gbItem : gradebookItems) {
-            lineitems.put(gbItem.name, "<lineitem name=\"" + escapeForXML(gbItem.name) + "\" pointspossible=\"" + (gbItem.pointsPossible == null ? "" : gbItem.pointsPossible) + "\" type=\"" + (gbItem.type == null ? "" : escapeForXML(gbItem.type)) + "\" score=\"" + SCORE_KEY + "\"/>");
+            lineitems.put(gbItem.getName(), "<lineitem name=\"" + escapeForXML(gbItem.getName()) + "\" pointspossible=\"" + (gbItem.getPointsPossible() == null ? "" : gbItem.getPointsPossible()) + "\" type=\"" + (gbItem.getType() == null ? "" : escapeForXML(gbItem.getType())) + "\" score=\"" + SCORE_KEY + "\"/>");
         }
 
         return lineitems;
@@ -1373,7 +1373,7 @@ public class IClickerLogic {
         sb.append("\">\n");
 
         // loop through students
-        for (Student student : course.students) {
+        for (Student student : course.getStudents()) {
             // get the clicker data out first if there is any
             String[] cidsDates = makeClickerIdsAndDates(student.getClickerRegistrations());
             // now make the actual user data line
@@ -1455,7 +1455,7 @@ public class IClickerLogic {
             }
 
             gb = new Gradebook(courseId);
-            gb.courseId = courseId;
+            gb.setCourseId(courseId);
 
             for (int i = 0; i < users.getLength(); i++) {
                 Node userNode = users.item(i);
@@ -1504,22 +1504,22 @@ public class IClickerLogic {
                             continue;
                         }
 
-                        GradebookItem gbi = new GradebookItem(gb.id, liName);
+                        GradebookItem gbi = new GradebookItem(gb.getId(), liName);
 
-                        if (!gb.items.contains(gbi)) {
-                            gbi.pointsPossible = liPointsPossible;
-                            gbi.type = liType;
-                            gb.items.add(gbi);
+                        if (!gb.getItems().contains(gbi)) {
+                            gbi.setPointsPossible(liPointsPossible);
+                            gbi.setType(liType);
+                            gb.getItems().add(gbi);
                         } else {
-                            int pos = gb.items.lastIndexOf(gbi);
+                            int pos = gb.getItems().lastIndexOf(gbi);
 
                             if (pos >= 0) {
-                                gbi = gb.items.get(pos);
+                                gbi = gb.getItems().get(pos);
                             }
                         }
                         // add in the score
-                        GradebookItemScore gbis = new GradebookItemScore(gbi.name, userId, liScore);
-                        gbi.scores.add(gbis);
+                        GradebookItemScore gbis = new GradebookItemScore(gbi.getName(), userId, liScore);
+                        gbi.getScores().add(gbis);
                     }
                 } else {
                     throw new IllegalArgumentException("Invalid user node in XML: " + userNode);
@@ -1543,7 +1543,7 @@ public class IClickerLogic {
         boolean hasErrors = false;
 
         for (GradebookItem gbItem : items) {
-            if (gbItem.scoreErrors != null && ! gbItem.scoreErrors.isEmpty()) {
+            if (gbItem.getScoreErrors() != null && ! gbItem.getScoreErrors().isEmpty()) {
                 hasErrors = true;
                 break;
             }
@@ -1581,7 +1581,7 @@ public class IClickerLogic {
 
         if (hasErrors) {
             Map<String, String> lineitems = makeLineitemsMap(items);
-            HashSet<String> invalidUserIds = new HashSet<String>();
+            HashSet<String> invalidUserIds = new HashSet<>();
 
             StringBuilder sb = new StringBuilder();
             sb.append("<errors courseId=\"");
@@ -1591,15 +1591,15 @@ public class IClickerLogic {
             Map<String, StringBuilder> errorItems = new LinkedHashMap<>();
 
             for (GradebookItem gbItem : items) {
-                if (gbItem.scoreErrors != null && ! gbItem.scoreErrors.isEmpty()) {
-                    for (GradebookItemScore score : gbItem.scores) {
-                        if (score.error != null) {
-                            String lineitem = lineitems.get(gbItem.name);
+                if (gbItem.getScoreErrors() != null && ! gbItem.getScoreErrors().isEmpty()) {
+                    for (GradebookItemScore score : gbItem.getScores()) {
+                        if (score.getError() != null) {
+                            String lineitem = lineitems.get(gbItem.getName());
 
-                            if (AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR.equals(score.error)) {
+                            if (AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR.equals(score.getError())) {
                                 String key = AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR;
 
-                                if (invalidUserIds.add(score.userId)) {
+                                if (invalidUserIds.add(score.getUserId())) {
                                     // only if the invalid user is not already listed in the errors
                                     if (! errorItems.containsKey(key)) {
                                         errorItems.put(key, new StringBuilder());
@@ -1607,9 +1607,9 @@ public class IClickerLogic {
 
                                     @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                     StringBuilder sbe = errorItems.get(key);
-                                    sbe.append("    <user id=\"").append(score.userId).append("\" />\n");
+                                    sbe.append("    <user id=\"").append(score.getUserId()).append("\" />\n");
                                 }
-                            } else if (AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS.equals(score.error)) {
+                            } else if (AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS.equals(score.getError())) {
                                 String key = AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS;
 
                                 if (! errorItems.containsKey(key)) {
@@ -1618,9 +1618,9 @@ public class IClickerLogic {
 
                                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
-                                String li = lineitem.replace(SCORE_KEY, score.grade);
-                                sbe.append("    <user id=\"").append(score.userId).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
-                            } else if (AbstractExternalLogic.SCORE_UPDATE_ERRORS.equals(score.error)) {
+                                String li = lineitem.replace(SCORE_KEY, score.getGrade());
+                                sbe.append("    <user id=\"").append(score.getUserId()).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
+                            } else if (AbstractExternalLogic.SCORE_UPDATE_ERRORS.equals(score.getError())) {
                                 String key = AbstractExternalLogic.SCORE_UPDATE_ERRORS;
 
                                 if (! errorItems.containsKey(key)) {
@@ -1629,8 +1629,8 @@ public class IClickerLogic {
 
                                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
-                                String li = lineitem.replace(SCORE_KEY, score.grade);
-                                sbe.append("    <user id=\"").append(score.userId).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
+                                String li = lineitem.replace(SCORE_KEY, score.getGrade());
+                                sbe.append("    <user id=\"").append(score.getUserId()).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
                             } else {
                                 // general error
                                 String key = AbstractExternalLogic.GENERAL_ERRORS;
@@ -1641,8 +1641,8 @@ public class IClickerLogic {
 
                                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
-                                String li = lineitem.replace(SCORE_KEY, score.grade);
-                                sbe.append("    <user id=\"").append(score.userId).append("\" error=\"").append(score.error).append("\">\n").append("      <error type=\"").append(score.error).append("\" />\n").append("      ").append(li).append("\n").append("    </user>\n");
+                                String li = lineitem.replace(SCORE_KEY, score.getGrade());
+                                sbe.append("    <user id=\"").append(score.getUserId()).append("\" error=\"").append(score.getError()).append("\">\n").append("      <error type=\"").append(score.getError()).append("\" />\n").append("      ").append(li).append("\n").append("    </user>\n");
                             }
                         }
                     }

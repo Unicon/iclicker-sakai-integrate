@@ -24,6 +24,7 @@ import java.util.Set;
 import org.sakaiproject.iclicker.model.dao.ClickerRegistration;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents a student in the course gradebook, this only makes sense in the context of a course or
@@ -31,8 +32,8 @@ import lombok.Getter;
  */
 public class Student extends User {
 
-    public Boolean clickerRegistered;
-    @Getter public Set<ClickerRegistration> clickerRegistrations;
+    @Setter private Boolean clickerRegistered;
+    @Setter @Getter private Set<ClickerRegistration> clickerRegistrations;
 
     protected Student() {
     }
@@ -43,10 +44,6 @@ public class Student extends User {
 
     public Student(String userId, String username, String name, String sortName, String email) {
         super(userId, username, name, sortName, email);
-    }
-
-    public Boolean getClickerRegistered() {
-        return clickerRegistered;
     }
 
     public boolean isClickerRegistered() {

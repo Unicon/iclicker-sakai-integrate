@@ -236,12 +236,12 @@ public class RestServlet extends HttpServlet {
                             getAndCheckCurrentUser("access student enrollment listings");
                             List<Student> students = logic.getStudentsForCourseWithClickerReg(courseId);
                             Course course = new Course(courseId, courseId);
-                            course.students = students;
+                            course.setStudents(students);
                             output = logic.encodeEnrollments(course);
                         } else {
                             // UNKNOWN
                             valid = false;
-                            output = "Unknown path ("+path+") specified"; 
+                            output = "Unknown path (" + path + ") specified"; 
                             status = HttpServletResponse.SC_NOT_FOUND;
                         }
                     } else {

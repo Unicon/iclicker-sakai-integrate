@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.iclicker.impl.logic.FakeDataPreload;
 import org.sakaiproject.iclicker.logic.ExternalLogic;
 import org.sakaiproject.iclicker.model.Course;
+import org.sakaiproject.iclicker.model.Student;
 import org.sakaiproject.iclicker.model.User;
 
 import lombok.Getter;
@@ -166,7 +167,7 @@ public class ExternalLogicStub extends ExternalLogic {
                 Course c = new Course(FakeDataPreload.LOCATION1_ID, FakeDataPreload.LOCATION1_TITLE);
 
                 if (siteId != null) {
-                    c.students = new ArrayList<>(); // fill with data?
+                    c.setStudents(new ArrayList<Student>()); // fill with data?
                 }
 
                 sites.add( c );

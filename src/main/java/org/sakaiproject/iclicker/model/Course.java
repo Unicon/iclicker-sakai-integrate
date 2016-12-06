@@ -23,22 +23,22 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents a course
  */
 public class Course {
 
-    @Getter public String id;
-    @Getter public String title;
-    @Getter public String description;
+    @Setter @Getter private String id;
+    @Setter @Getter private String title;
+    @Setter @Getter private String description;
     /**
      * This is the timecode (seconds) of the time when this course was created
      */
-    @Getter private long createdTime;
-    @Getter public boolean published;
-
-    @Getter public List<Student> students = null;
+    @Setter @Getter private long createdTime;
+    @Setter @Getter private boolean published;
+    @Setter @Getter private List<Student> students = null;
 
     public Course(String id, String title) {
         this(id, title, null);

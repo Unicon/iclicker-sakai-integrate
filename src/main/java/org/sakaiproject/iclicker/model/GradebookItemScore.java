@@ -22,23 +22,26 @@ import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * This represents an individual score in a gradebook grade item for a user
  */
 public class GradebookItemScore {
-    public String id;
-    public String itemName;
-    public String userId;
-    public String username;
-    public String graderUserId;
-    public Date recorded;
-    public String grade;
-    public String comment;
+    @Setter @Getter private String id;
+    @Setter @Getter private String itemName;
+    @Setter @Getter private String userId;
+    @Setter @Getter private String username;
+    @Setter @Getter private String graderUserId;
+    @Setter @Getter private Date recorded;
+    @Setter @Getter private String grade;
+    @Setter @Getter private String comment;
 
     /**
      * Used to indicate the failure that occurred when saving this score (null if no error)
      */
-    public String error;
+    @Setter @Getter private String error;
 
     protected GradebookItemScore() {
     }

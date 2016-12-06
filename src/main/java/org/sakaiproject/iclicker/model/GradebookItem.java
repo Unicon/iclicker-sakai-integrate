@@ -25,26 +25,28 @@ import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * This represents an item in a gradebook and the associated scores
  */
 public class GradebookItem {
-    public String id;
-    public String gradebookId;
-    public String name;
-    public Double pointsPossible;
-    public Date dueDate;
-    public String type = "internal"; // this is the externalAppName or "internal"
-    public boolean released = false;
-
-    public List<GradebookItemScore> scores = new Vector<>();
+    @Setter @Getter private String id;
+    @Setter @Getter private String gradebookId;
+    @Setter @Getter private String name;
+    @Setter @Getter private Double pointsPossible;
+    @Setter @Getter private Date dueDate;
+    @Setter @Getter private String type = "internal"; // this is the externalAppName or "internal"
+    @Setter @Getter private boolean released = false;
+    @Setter @Getter private List<GradebookItemScore> scores = new Vector<>();
 
     /**
      * map of score id -> error_key,
      * these are recorded when this item is saved
      * (errors also recorded in the scores themselves)
      */
-    public Map<String, String> scoreErrors;
+    @Setter @Getter private Map<String, String> scoreErrors;
 
     protected GradebookItem() {
     }

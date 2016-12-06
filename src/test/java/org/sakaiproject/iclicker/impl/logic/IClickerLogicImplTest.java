@@ -353,55 +353,55 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         String xml = "<coursegradebook courseid='course-id-111'> " + "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " + "<user id='student2' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> " + "<user id='student3' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='63.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='33.0'/> </user> " + "</coursegradebook>";
         Gradebook gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
-        assertNotNull(gb.items);
-        assertEquals(3, gb.items.size());
-        assertNotNull(gb.items.get(0).scores);
-        assertEquals(3, gb.items.get(0).scores.size());
-        assertNotNull(gb.items.get(1).scores);
-        assertEquals(3, gb.items.get(1).scores.size());
-        assertNotNull(gb.items.get(2).scores);
-        assertEquals(3, gb.items.get(2).scores.size());
+        assertNotNull(gb.getItems());
+        assertEquals(3, gb.getItems().size());
+        assertNotNull(gb.getItems().get(0).getScores());
+        assertEquals(3, gb.getItems().get(0).getScores().size());
+        assertNotNull(gb.getItems().get(1).getScores());
+        assertEquals(3, gb.getItems().get(1).getScores().size());
+        assertNotNull(gb.getItems().get(2).getScores());
+        assertEquals(3, gb.getItems().get(2).getScores().size());
 
         // try XML with varying completeness
         xml = "<coursegradebook courseid='course-id-111'> <user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> <user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> <user id='student3' usertype='S'> <lineitem name='item 3' pointspossible='50.0' type='internal' score='33.0'/> </user> <user id='student4' usertype='S'> </user> <user id='inst3' usertype='I'> </user> </coursegradebook>";
         gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
-        assertNotNull(gb.items);
-        assertEquals(3, gb.items.size());
-        assertNotNull(gb.items.get(0).scores);
-        assertEquals(1, gb.items.get(0).scores.size());
-        assertNotNull(gb.items.get(1).scores);
-        assertEquals(2, gb.items.get(1).scores.size());
-        assertNotNull(gb.items.get(2).scores);
-        assertEquals(3, gb.items.get(2).scores.size());
+        assertNotNull(gb.getItems());
+        assertEquals(3, gb.getItems().size());
+        assertNotNull(gb.getItems().get(0).getScores());
+        assertEquals(1, gb.getItems().get(0).getScores().size());
+        assertNotNull(gb.getItems().get(1).getScores());
+        assertEquals(2, gb.getItems().get(1).getScores().size());
+        assertNotNull(gb.getItems().get(2).getScores());
+        assertEquals(3, gb.getItems().get(2).getScores().size());
 
         // try XML with varying completeness
         xml = "<coursegradebook courseid='course-id-111'> " + "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " + "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> </coursegradebook>";
         gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
-        assertNotNull(gb.items);
-        assertEquals(3, gb.items.size());
-        assertNotNull(gb.items.get(0).scores);
-        assertEquals(1, gb.items.get(0).scores.size());
-        assertNotNull(gb.items.get(1).scores);
-        assertEquals(2, gb.items.get(1).scores.size());
-        assertNotNull(gb.items.get(2).scores);
-        assertEquals(2, gb.items.get(2).scores.size());
+        assertNotNull(gb.getItems());
+        assertEquals(3, gb.getItems().size());
+        assertNotNull(gb.getItems().get(0).getScores());
+        assertEquals(1, gb.getItems().get(0).getScores().size());
+        assertNotNull(gb.getItems().get(1).getScores());
+        assertEquals(2, gb.getItems().get(1).getScores().size());
+        assertNotNull(gb.getItems().get(2).getScores());
+        assertEquals(2, gb.getItems().get(2).getScores().size());
 
         // mixed order
         xml = "<coursegradebook courseid='course-id-111'> " + "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> </user> " + "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 3' pointspossible='100' type='internal' score='91.0'/> </user> " + "<user id='student3' usertype='S'> <lineitem name='item 3' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 4' pointspossible='100' type='internal' score='63.0'/> </user> " + "<user id='student4' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='100.0'/> <lineitem name='item 1' pointspossible='100' type='internal' score='100.0'/> </user> " + "</coursegradebook>";
         gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
-        assertNotNull(gb.items);
-        assertEquals(4, gb.items.size());
-        assertNotNull(gb.items.get(0).scores);
-        assertEquals(2, gb.items.get(0).scores.size());
-        assertNotNull(gb.items.get(1).scores);
-        assertEquals(3, gb.items.get(1).scores.size());
-        assertNotNull(gb.items.get(2).scores);
-        assertEquals(2, gb.items.get(2).scores.size());
-        assertNotNull(gb.items.get(3).scores);
-        assertEquals(1, gb.items.get(3).scores.size());
+        assertNotNull(gb.getItems());
+        assertEquals(4, gb.getItems().size());
+        assertNotNull(gb.getItems().get(0).getScores());
+        assertEquals(2, gb.getItems().get(0).getScores().size());
+        assertNotNull(gb.getItems().get(1).getScores());
+        assertEquals(3, gb.getItems().get(1).getScores().size());
+        assertNotNull(gb.getItems().get(2).getScores());
+        assertEquals(2, gb.getItems().get(2).getScores().size());
+        assertNotNull(gb.getItems().get(3).getScores());
+        assertEquals(1, gb.getItems().get(3).getScores().size());
 
         try {
             // no courseid
@@ -430,14 +430,14 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         List<GradebookItem> items = new ArrayList<>();
 
         GradebookItem item0 = new GradebookItem(gbId, "item0");
-        item0.scores = new ArrayList<>();
-        item0.scoreErrors = new HashMap<>();
-        GradebookItemScore item0_1 = new GradebookItemScore(item0.name, userId, "50");
-        item0_1.id = "0_1";
-        item0.scores.add(item0_1);
-        GradebookItemScore item0_2 = new GradebookItemScore(item0.name, userId + "2", "60");
-        item0_2.id = "0_2";
-        item0.scores.add(item0_2);
+        item0.setScores(new ArrayList<GradebookItemScore>());
+        item0.setScoreErrors(new HashMap<String, String>());
+        GradebookItemScore item0_1 = new GradebookItemScore(item0.getName(), userId, "50");
+        item0_1.setId("0_1");
+        item0.getScores().add(item0_1);
+        GradebookItemScore item0_2 = new GradebookItemScore(item0.getName(), userId + "2", "60");
+        item0_2.setId("0_2");
+        item0.getScores().add(item0_2);
         items.add(item0);
 
         // valid one first
@@ -446,45 +446,45 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
 
         // now one with lots of errors
         GradebookItem item1 = new GradebookItem(gbId, "item1");
-        item1.scores = new ArrayList<>();
-        item1.scoreErrors = new HashMap<>();
-        GradebookItemScore item1_1 = new GradebookItemScore(item1.name, userId, "50");
-        item1_1.id = "1_1";
-        item1_1.error = AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR;
-        item1.scoreErrors.put(item1_1.id, AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR);
-        item1.scores.add(item1_1);
+        item1.setScores(new ArrayList<GradebookItemScore>());
+        item1.setScoreErrors(new HashMap<String, String>());
+        GradebookItemScore item1_1 = new GradebookItemScore(item1.getName(), userId, "50");
+        item1_1.setId("1_1");
+        item1_1.setError(AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR);
+        item1.getScoreErrors().put(item1_1.getId(), AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR);
+        item1.getScores().add(item1_1);
         items.add(item1);
 
         GradebookItem item2 = new GradebookItem(gbId, "item2", 50.0d, null, "type", true);
-        item2.scores = new ArrayList<>();
-        item2.scoreErrors = new HashMap<>();
-        GradebookItemScore item2_1 = new GradebookItemScore(item2.name, userId, "40");
-        item2_1.id = "2_1";
-        item2_1.error = AbstractExternalLogic.SCORE_UPDATE_ERRORS;
-        item2.scoreErrors.put(item2_1.id, AbstractExternalLogic.SCORE_UPDATE_ERRORS);
-        item2.scores.add(item2_1);
+        item2.setScores(new ArrayList<GradebookItemScore>());
+        item2.setScoreErrors(new HashMap<String, String>());
+        GradebookItemScore item2_1 = new GradebookItemScore(item2.getName(), userId, "40");
+        item2_1.setId("2_1");
+        item2_1.setError(AbstractExternalLogic.SCORE_UPDATE_ERRORS);
+        item2.getScoreErrors().put(item2_1.getId(), AbstractExternalLogic.SCORE_UPDATE_ERRORS);
+        item2.getScores().add(item2_1);
         items.add(item2);
 
         GradebookItem item3 = new GradebookItem(gbId, "item3");
-        item3.scores = new ArrayList<>();
-        item3.scoreErrors = new HashMap<>();
-        GradebookItemScore item3_1 = new GradebookItemScore(item3.name, userId, "30");
-        item3_1.id = "3_1";
-        item3_1.error = AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS;
-        item3.scoreErrors.put(item3_1.id, AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS);
-        item3.scores.add(item3_1);
-        GradebookItemScore item3_2 = new GradebookItemScore(item3.name, userId, "20");
-        item3_2.id = "3_2";
-        item3_2.error = "RANDOM ERROR XXX";
-        item3.scoreErrors.put(item3_2.id, "RANDOM ERROR XXX");
-        item3.scores.add(item3_2);
+        item3.setScores(new ArrayList<GradebookItemScore>());
+        item3.setScoreErrors(new HashMap<String, String>());
+        GradebookItemScore item3_1 = new GradebookItemScore(item3.getName(), userId, "30");
+        item3_1.setId("3_1");
+        item3_1.setError(AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS);
+        item3.getScoreErrors().put(item3_1.getId(), AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS);
+        item3.getScores().add(item3_1);
+        GradebookItemScore item3_2 = new GradebookItemScore(item3.getName(), userId, "20");
+        item3_2.setId("3_2");
+        item3_2.setError("RANDOM ERROR XXX");
+        item3.getScoreErrors().put(item3_2.getId(), "RANDOM ERROR XXX");
+        item3.getScores().add(item3_2);
         items.add(item3);
 
         xml = logicImpl.encodeSaveGradebookResults(courseId, items);
         assertNotNull(xml);
         assertTrue(xml.indexOf(userId) > 0);
-        assertTrue(xml.indexOf(item2.name) > 0);
-        assertTrue(xml.indexOf(item3.name) > 0);
+        assertTrue(xml.indexOf(item2.getName()) > 0);
+        assertTrue(xml.indexOf(item3.getName()) > 0);
 
         // null failure
         try {

@@ -194,8 +194,8 @@ public class ToolController {
             Course course = courses.get(0);
             pageContext.setAttribute("showStudents", true);
             pageContext.setAttribute("course", course);
-            pageContext.setAttribute("students", course.students);
-            pageContext.setAttribute("studentsCount", course.students.size());
+            pageContext.setAttribute("students", course.getStudents());
+            pageContext.setAttribute("studentsCount", course.getStudents().size());
         }
 
         // SSO handling
