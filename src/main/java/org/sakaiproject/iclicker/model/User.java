@@ -33,13 +33,13 @@ import lombok.Setter;
  */
 public class User {
 
-    @Setter @Getter public String userId;
-    @Setter @Getter public String username;
-    @Setter @Getter public String name;
-    @Setter @Getter public String fname;
-    @Setter @Getter public String lname;
-    @Setter @Getter public String email;
-    @Setter @Getter public String sortName;
+    @Setter @Getter private String userId;
+    @Setter @Getter private String username;
+    @Setter @Getter private String name;
+    @Setter @Getter private String fname;
+    @Setter @Getter private String lname;
+    @Setter @Getter private String email;
+    @Setter @Getter private String sortName;
 
     protected User() {
     }

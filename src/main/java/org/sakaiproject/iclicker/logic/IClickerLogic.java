@@ -942,7 +942,7 @@ public class IClickerLogic {
                 String[] owners = new String[students.size()];
 
                 for (int i = 0; i < students.size(); i++) {
-                    owners[i] = students.get(i).userId;
+                    owners[i] = students.get(i).getUserId();
                 }
 
                 search.addRestriction( new Restriction("ownerId", owners) );
@@ -963,7 +963,7 @@ public class IClickerLogic {
 
             // now merge the set of registrations with the set of students
             for (Student student : students) {
-                Set<ClickerRegistration> crs = ownerToReg.get(student.userId);
+                Set<ClickerRegistration> crs = ownerToReg.get(student.getUserId());
 
                 if (crs == null || crs.isEmpty()) {
                     student.clickerRegistered = Boolean.FALSE;
@@ -1096,9 +1096,9 @@ public class IClickerLogic {
         sb.append("  <S DisplayName=\"");
         sb.append(escapeForXML(user.getName()));
         sb.append("\" FirstName=\"");
-        sb.append(escapeForXML(user.fname));
+        sb.append(escapeForXML(user.getFname()));
         sb.append("\" LastName=\"");
-        sb.append(escapeForXML(user.lname));
+        sb.append(escapeForXML(user.getLname()));
         sb.append("\" StudentID=\"");
         sb.append(escapeForXML(user.getUsername()).toUpperCase());
         sb.append("\" Email=\"");
@@ -1306,7 +1306,7 @@ public class IClickerLogic {
         // loop through the students
         for (Student student : gradebook.students) {
             sb.append("  <user id=\"");
-            sb.append(escapeForXML(student.username));
+            sb.append(escapeForXML(student.getUsername()));
             sb.append("\" usertype=\"S\">\n");
 
             // put in the lineitems with scores
@@ -1382,9 +1382,9 @@ public class IClickerLogic {
             sb.append("\" usertype=\"");
             sb.append("S");
             sb.append("\" firstname=\"");
-            sb.append(escapeForXML(student.fname == null ? "" : student.fname));
+            sb.append(escapeForXML(student.getFname() == null ? "" : student.getFname()));
             sb.append("\" lastname=\"");
-            sb.append(escapeForXML(student.lname == null ? "" : student.lname));
+            sb.append(escapeForXML(student.getLname() == null ? "" : student.getLname()));
             sb.append("\" emailid=\"");
             sb.append(escapeForXML(student.getEmail() == null ? "" : student.getEmail()));
             sb.append("\" uniqueid=\"");
@@ -1774,7 +1774,7 @@ public class IClickerLogic {
                 }
 
                 User u = this.externalLogic.getUser(this.externalLogic.getCurrentUserId());
-                lastName = u.lname;
+                lastName = u.getLname();
             }
 
             // store the validated clicker to avoid checking the WS repeatedly in a single request

@@ -333,8 +333,8 @@ public abstract class AbstractExternalLogic {
         }
         if (u != null) {
             user = new org.sakaiproject.iclicker.model.User(u.getId(), u.getEid(), u.getDisplayName(), u.getSortName(), u.getEmail());
-            user.fname = u.getFirstName();
-            user.lname = u.getLastName();
+            user.setFname(u.getFirstName());
+            user.setLname(u.getLastName());
         }
 
         return user;
@@ -517,8 +517,8 @@ public abstract class AbstractExternalLogic {
 
         for (User user : studentUsers) {
             Student s = new Student(user.getId(), user.getEid(), user.getDisplayName(), user.getSortName(), user.getEmail());
-            s.fname = user.getFirstName();
-            s.lname = user.getLastName();
+            s.setFname(user.getFirstName());
+            s.setLname(user.getLastName());
             students.add(s);
         }
 
@@ -605,7 +605,7 @@ public abstract class AbstractExternalLogic {
         Map<String, String> studentUserIds = new ConcurrentHashMap<>();
 
         for (Student student : gb.students) {
-            studentUserIds.put(student.userId, student.username);
+            studentUserIds.put(student.getUserId(), student.getUsername());
         }
 
         ArrayList<String> studentIds = new ArrayList<>(studentUserIds.keySet());

@@ -25,7 +25,7 @@ import org.sakaiproject.iclicker.logic.IClickerLogic;
 import org.sakaiproject.iclicker.logic.stubs.ExternalLogicStub;
 
 /**
- * For testing the webservices calls (should nor run during standard build)
+ * For testing the webservices calls (should not run during standard build)
  */
 public class IClickerTestWebservices extends TestCase {
 
