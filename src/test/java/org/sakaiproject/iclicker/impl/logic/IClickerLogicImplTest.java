@@ -37,8 +37,6 @@ import org.springframework.test.AbstractTransactionalSpringContextTests;
 
 /**
  * Testing the Logic implementation methods
- * 
- * @author Aaron Zeckoski (azeckoski @ gmail.com)
  */
 public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTests {
 
@@ -51,7 +49,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         // point to the needed spring config files, must be on the classpath
         // (add component/src/webapp/WEB-INF to the build path in Eclipse),
         // they also need to be referenced in the project.xml file
-        return new String[] { "hibernate-test.xml", "spring-hibernate.xml" };
+        return new String[] {"hibernate-test.xml", "spring-hibernate.xml"};
     }
 
     // run this before each test starts
@@ -61,24 +59,21 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
     // run this before each test starts and as part of the transaction
     protected void onSetUpInTransaction() {
         // load the spring created dao class bean from the Spring Application Context
-        IClickerDao dao = (IClickerDao) applicationContext
-                .getBean("org.sakaiproject.iclicker.api.dao.IClickerDao");
+        IClickerDao dao = (IClickerDao) applicationContext.getBean("org.sakaiproject.iclicker.api.dao.IClickerDao");
+
         if (dao == null) {
             throw new NullPointerException("DAO could not be retrieved from spring context");
         }
 
         // load up the test data preloader from spring
-        tdp = (FakeDataPreload) applicationContext
-                .getBean("org.sakaiproject.iclicker.impl.logic.test.FakeDataPreload");
+        tdp = (FakeDataPreload) applicationContext.getBean("org.sakaiproject.iclicker.impl.logic.test.FakeDataPreload");
+
         if (tdp == null) {
-            throw new NullPointerException(
-                    "FakeDataPreload could not be retrieved from spring context");
+            throw new NullPointerException("FakeDataPreload could not be retrieved from spring context");
         }
 
         // reload the test objects in this session
         tdp.reloadTestData();
-
-        // init the class if needed
 
         // setup the mock objects
         externalLogic = new ExternalLogicStub();
@@ -156,7 +151,6 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
     }
 
     public void testSaveItem() {
-
         ClickerRegistration item = new ClickerRegistration("AA11AA11", FakeDataPreload.USER_ID);
         logicImpl.saveItem(item);
         Long itemId = item.getId();
@@ -195,6 +189,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
             assertNotNull(e.getMessage());
         }
     }
+
     public void testValidateClickerId() {
         try {
             logicImpl.validateClickerId(null);
@@ -325,14 +320,14 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
     }
 
     public void testEncodeClickerReg() {
-        ClickerRegistration registration = new ClickerRegistration("11111111","azeckoski-123456");
+        ClickerRegistration registration = new ClickerRegistration("11111111", "azeckoski-123456");
         String xml = logicImpl.encodeClickerRegistration(registration);
         assertNotNull(xml);
     }
 
     public void testMakeClickerIdsAndDates() {
-        ClickerRegistration registration = new ClickerRegistration("11111111","azeckoski-1");
-        ClickerRegistration registration2 = new ClickerRegistration("22222222","becky-2");
+        ClickerRegistration registration = new ClickerRegistration("11111111", "azeckoski-1");
+        ClickerRegistration registration2 = new ClickerRegistration("22222222", "becky-2");
         String[] result;
 
         List<ClickerRegistration> clickers = new ArrayList<ClickerRegistration>();
@@ -355,11 +350,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
 
     public void testDecodeGradebookXML() {
         // fully complete XML with 3 items and 3 students
-        String xml = "<coursegradebook courseid='course-id-111'> " +
-                "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
-                "<user id='student2' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> " +
-                "<user id='student3' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='63.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='33.0'/> </user> " +
-                "</coursegradebook>";
+        String xml = "<coursegradebook courseid='course-id-111'> " + "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " + "<user id='student2' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> " + "<user id='student3' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='63.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='33.0'/> </user> " + "</coursegradebook>";
         Gradebook gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
         assertNotNull(gb.items);
@@ -385,9 +376,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         assertEquals(3, gb.items.get(2).scores.size());
 
         // try XML with varying completeness
-        xml = "<coursegradebook courseid='course-id-111'> " +
-                "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
-                "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> </coursegradebook>";
+        xml = "<coursegradebook courseid='course-id-111'> " + "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " + "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='91.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='41.0'/> </user> </coursegradebook>";
         gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
         assertNotNull(gb.items);
@@ -400,12 +389,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         assertEquals(2, gb.items.get(2).scores.size());
 
         // mixed order
-        xml = "<coursegradebook courseid='course-id-111'> " +
-                "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> </user> " +
-                "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 3' pointspossible='100' type='internal' score='91.0'/> </user> " +
-                "<user id='student3' usertype='S'> <lineitem name='item 3' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 4' pointspossible='100' type='internal' score='63.0'/> </user> " +
-                "<user id='student4' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='100.0'/> <lineitem name='item 1' pointspossible='100' type='internal' score='100.0'/> </user> " +
-                "</coursegradebook>";
+        xml = "<coursegradebook courseid='course-id-111'> " + "<user id='student1' usertype='S'> <lineitem name='item 1' pointspossible='100.0' type='internal' score='93.0'/> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> </user> " + "<user id='student2' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='77.0'/> <lineitem name='item 3' pointspossible='100' type='internal' score='91.0'/> </user> " + "<user id='student3' usertype='S'> <lineitem name='item 3' pointspossible='100.0' type='internal' score='57.0'/> <lineitem name='item 4' pointspossible='100' type='internal' score='63.0'/> </user> " + "<user id='student4' usertype='S'> <lineitem name='item 2' pointspossible='100.0' type='internal' score='100.0'/> <lineitem name='item 1' pointspossible='100' type='internal' score='100.0'/> </user> " + "</coursegradebook>";
         gb = logicImpl.decodeGradebookXML(xml);
         assertNotNull(gb);
         assertNotNull(gb.items);
@@ -421,10 +405,8 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
 
         try {
             // no courseid
-            xml = "<coursegradebook > " +
-                    "<user id='student1' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " +
-                    "</coursegradebook>";
-            //noinspection UnusedAssignment,UnusedAssignment
+            xml = "<coursegradebook > " + "<user id='student1' usertype='S'> <lineitem name='item 2' pointspossible='100' type='internal' score='87.0'/> <lineitem name='item 3' pointspossible='50.0' type='internal' score='47.0'/> </user> " + "</coursegradebook>";
+            // noinspection UnusedAssignment,UnusedAssignment
             gb = logicImpl.decodeGradebookXML(xml);
             fail("Should have thrown NullPointerException");
         } catch (IllegalArgumentException e) {
@@ -445,18 +427,18 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         String courseId = "course-id-1111";
         String gbId = "gb-id-11111";
         String userId = "user-id-AZ";
-        List<GradebookItem> items = new ArrayList<GradebookItem>();
+        List<GradebookItem> items = new ArrayList<>();
 
         GradebookItem item0 = new GradebookItem(gbId, "item0");
-        item0.scores = new ArrayList<GradebookItemScore>();
-        item0.scoreErrors = new HashMap<String, String>();
+        item0.scores = new ArrayList<>();
+        item0.scoreErrors = new HashMap<>();
         GradebookItemScore item0_1 = new GradebookItemScore(item0.name, userId, "50");
         item0_1.id = "0_1";
-        item0.scores.add( item0_1 );
-        GradebookItemScore item0_2 = new GradebookItemScore(item0.name, userId+"2", "60");
+        item0.scores.add(item0_1);
+        GradebookItemScore item0_2 = new GradebookItemScore(item0.name, userId + "2", "60");
         item0_2.id = "0_2";
-        item0.scores.add( item0_2 );
-        items.add( item0 );
+        item0.scores.add(item0_2);
+        items.add(item0);
 
         // valid one first
         xml = logicImpl.encodeSaveGradebookResults(courseId, items);
@@ -464,39 +446,39 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
 
         // now one with lots of errors
         GradebookItem item1 = new GradebookItem(gbId, "item1");
-        item1.scores = new ArrayList<GradebookItemScore>();
-        item1.scoreErrors = new HashMap<String, String>();
+        item1.scores = new ArrayList<>();
+        item1.scoreErrors = new HashMap<>();
         GradebookItemScore item1_1 = new GradebookItemScore(item1.name, userId, "50");
         item1_1.id = "1_1";
         item1_1.error = AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR;
         item1.scoreErrors.put(item1_1.id, AbstractExternalLogic.USER_DOES_NOT_EXIST_ERROR);
-        item1.scores.add( item1_1 );
-        items.add( item1 );
+        item1.scores.add(item1_1);
+        items.add(item1);
 
         GradebookItem item2 = new GradebookItem(gbId, "item2", 50.0d, null, "type", true);
-        item2.scores = new ArrayList<GradebookItemScore>();
-        item2.scoreErrors = new HashMap<String, String>();
+        item2.scores = new ArrayList<>();
+        item2.scoreErrors = new HashMap<>();
         GradebookItemScore item2_1 = new GradebookItemScore(item2.name, userId, "40");
         item2_1.id = "2_1";
         item2_1.error = AbstractExternalLogic.SCORE_UPDATE_ERRORS;
         item2.scoreErrors.put(item2_1.id, AbstractExternalLogic.SCORE_UPDATE_ERRORS);
-        item2.scores.add( item2_1 );
-        items.add( item2 );
+        item2.scores.add(item2_1);
+        items.add(item2);
 
         GradebookItem item3 = new GradebookItem(gbId, "item3");
-        item3.scores = new ArrayList<GradebookItemScore>();
-        item3.scoreErrors = new HashMap<String, String>();
+        item3.scores = new ArrayList<>();
+        item3.scoreErrors = new HashMap<>();
         GradebookItemScore item3_1 = new GradebookItemScore(item3.name, userId, "30");
         item3_1.id = "3_1";
         item3_1.error = AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS;
         item3.scoreErrors.put(item3_1.id, AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS);
-        item3.scores.add( item3_1 );
+        item3.scores.add(item3_1);
         GradebookItemScore item3_2 = new GradebookItemScore(item3.name, userId, "20");
         item3_2.id = "3_2";
         item3_2.error = "RANDOM ERROR XXX";
         item3.scoreErrors.put(item3_2.id, "RANDOM ERROR XXX");
-        item3.scores.add( item3_2 );
-        items.add( item3 );
+        item3.scores.add(item3_2);
+        items.add(item3);
 
         xml = logicImpl.encodeSaveGradebookResults(courseId, items);
         assertNotNull(xml);
@@ -521,20 +503,9 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
     }
 
     /**
-     * How to create a valid encoded key:
-     * Take the input key (must be 10 chars long or longer) and append ':' and the current unix timestamp in seconds
-     * Take that string and SHA-1 encode it into a hexadecimal encoded string
-     * Take the hex string and append '|' and the same timestamp as before
-     * This is the encoded key which should be sent with the request
-     * 
-     * NOTE: it is safe to pass the encode key in the clear (as a url param or otherwise) 
-     * as it is one way encrypted and very very difficult to brute force decrypt
-     * 
-     * Sample key:
-     * abcdef1234566890
-     * Sample timestamp:
-     * 1332470760
-     * Encoded key:
+     * How to create a valid encoded key: Take the input key (must be 10 chars long or longer) and append ':' and the current unix timestamp in seconds Take that string and SHA-1 encode it into a
+     * hexadecimal encoded string Take the hex string and append '|' and the same timestamp as before This is the encoded key which should be sent with the request NOTE: it is safe to pass the encode
+     * key in the clear (as a url param or otherwise) as it is one way encrypted and very very difficult to brute force decrypt Sample key: abcdef1234566890 Sample timestamp: 1332470760 Encoded key:
      * cc80462bfc0da7e614237d7cab4b7971b0e71e9f|1332470760
      */
     public void testVerifyKey() {
@@ -543,6 +514,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
 
         // test expired timestamp
         String encodedKey = "cc80462bfc0da7e614237d7cab4b7971b0e71e9f|1332470760";
+
         try {
             logicImpl.verifyKey(encodedKey);
             fail("should have died");

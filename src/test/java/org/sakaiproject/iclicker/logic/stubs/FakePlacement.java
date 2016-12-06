@@ -24,20 +24,20 @@ import java.util.Properties;
 import org.sakaiproject.tool.api.Placement;
 import org.sakaiproject.tool.api.Tool;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Test class for the Sakai Placement object<br/>
- * This has to be here since I cannot create a Placement object in Sakai for some reason... sure
- * would be nice if I could though -AZ
- * 
- * @author Sakai App Builder -AZ
+ * This has to be here since I cannot create a Placement object in Sakai for some reason... sure would be nice if I could though -AZ
  */
 public class FakePlacement implements Placement {
 
-    private String id = "FAKE12345";
-    private String context; // a.k.a. siteId
-    private String title;
-    private Tool tool;
-    private String toolId;
+    @Setter @Getter private String id = "FAKE12345";
+    @Setter @Getter private String context; // a.k.a. siteId
+    @Setter @Getter private String title;
+    @Getter private Tool tool;
+    @Setter @Getter private String toolId;
 
     public FakePlacement() {
     }
@@ -45,49 +45,21 @@ public class FakePlacement implements Placement {
     /**
      * Construct a test Placement object with a context (siteId) set
      * 
-     * @param context
-     *            a String representing a site context (siteId)
+     * @param context a String representing a site context (siteId)
      */
     public FakePlacement(String context) {
         this.context = context;
     }
 
     public Properties getConfig() {
-
         return null;
-    }
-
-    public String getContext() {
-        return context;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public Properties getPlacementConfig() {
-
         return null;
     }
 
-    public String getTitle() {
-        return this.title;
-    }
-
-    public Tool getTool() {
-        return tool;
-    }
-
-    public String getToolId() {
-        return toolId;
-    }
-
     public void save() {
-
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public void setTool(String toolId, Tool tool) {

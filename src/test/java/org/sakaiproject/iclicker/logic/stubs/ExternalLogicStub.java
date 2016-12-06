@@ -22,11 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.iclicker.impl.logic.FakeDataPreload;
 import org.sakaiproject.iclicker.logic.ExternalLogic;
 import org.sakaiproject.iclicker.model.Course;
-import org.sakaiproject.iclicker.model.Student;
 import org.sakaiproject.iclicker.model.User;
+
+import lombok.Getter;
 
 /**
  * Stub class for the external logic impl (for testing)
@@ -36,7 +38,9 @@ public class ExternalLogicStub extends ExternalLogic {
     /**
      * represents the current user userId, can be changed to simulate multiple users
      */
+    @Getter(onMethod=@__(@Override))
     public String currentUserId;
+
     /**
      * represents the current location, can be changed to simulate multiple locations
      */
@@ -66,12 +70,8 @@ public class ExternalLogicStub extends ExternalLogic {
         } else if (locationId.equals(FakeDataPreload.LOCATION2_ID)) {
             return FakeDataPreload.LOCATION2_TITLE;
         }
-        return "--------";
-    }
 
-    @Override
-    public String getCurrentUserId() {
-        return currentUserId;
+        return "--------";
     }
 
     @Override
@@ -81,23 +81,25 @@ public class ExternalLogicStub extends ExternalLogic {
 
     @Override
     public String getUserDisplayName(String userId) {
-        if (userId.equals(FakeDataPreload.USER_ID)) {
+        if (StringUtils.equals(userId, FakeDataPreload.USER_ID)) {
             return FakeDataPreload.USER_DISPLAY;
-        } else if (userId.equals(FakeDataPreload.ACCESS_USER_ID)) {
+        } else if (StringUtils.equals(userId, FakeDataPreload.ACCESS_USER_ID)) {
             return FakeDataPreload.ACCESS_USER_DISPLAY;
-        } else if (userId.equals(FakeDataPreload.MAINT_USER_ID)) {
+        } else if (StringUtils.equals(userId, FakeDataPreload.MAINT_USER_ID)) {
             return FakeDataPreload.MAINT_USER_DISPLAY;
-        } else if (userId.equals(FakeDataPreload.ADMIN_USER_ID)) {
+        } else if (StringUtils.equals(userId, FakeDataPreload.ADMIN_USER_ID)) {
             return FakeDataPreload.ADMIN_USER_DISPLAY;
         }
+
         return "----------";
     }
 
     @Override
     public boolean isUserAdmin(String userId) {
-        if (userId.equals(FakeDataPreload.ADMIN_USER_ID)) {
+        if (StringUtils.equals(userId, FakeDataPreload.ADMIN_USER_ID)) {
             return true;
         }
+
         return false;
     }
 
@@ -115,39 +117,41 @@ public class ExternalLogicStub extends ExternalLogic {
 
     @Override
     public boolean isUserAllowedInLocation(String userId, String permission, String locationId) {
-        if (userId.equals(FakeDataPreload.USER_ID)) {
-            if (locationId.equals(FakeDataPreload.LOCATION1_ID)) {
+        if (StringUtils.equals(userId, FakeDataPreload.USER_ID)) {
+            if (StringUtils.equals(locationId, FakeDataPreload.LOCATION1_ID)) {
                 return false;
             }
-        } else if (userId.equals(FakeDataPreload.ACCESS_USER_ID)) {
-            if (locationId.equals(FakeDataPreload.LOCATION1_ID)) {
+        } else if (StringUtils.equals(userId, FakeDataPreload.ACCESS_USER_ID)) {
+            if (StringUtils.equals(locationId, FakeDataPreload.LOCATION1_ID)) {
                 return false;
             }
-        } else if (userId.equals(FakeDataPreload.MAINT_USER_ID)) {
+        } else if (StringUtils.equals(userId, FakeDataPreload.MAINT_USER_ID)) {
             if (locationId.equals(FakeDataPreload.LOCATION1_ID)) {
                 return true;
             }
-        } else if (userId.equals(FakeDataPreload.ADMIN_USER_ID)) {
+        } else if (StringUtils.equals(userId, FakeDataPreload.ADMIN_USER_ID)) {
             // admin can do anything in any context
             return true;
         }
+
         return false;
     }
 
     @Override
     public boolean isUserInstructor(String userId) {
-        if (userId.equals(FakeDataPreload.MAINT_USER_ID)) {
+        if (StringUtils.equals(userId, FakeDataPreload.MAINT_USER_ID)) {
             return true;
-        } else if (userId.equals(FakeDataPreload.ADMIN_USER_ID)) {
+        } else if (StringUtils.equals(userId, FakeDataPreload.ADMIN_USER_ID)) {
             // admin can do anything in any context but is not an instructor
             return false;
         }
+
         return false;
     }
 
     @Override
     public String isInstructorOfUser(String studentUserId) {
-        if (currentUserId.equals(FakeDataPreload.MAINT_USER_ID)) {
+        if (StringUtils.equals(currentUserId, FakeDataPreload.MAINT_USER_ID)) {
             return FakeDataPreload.LOCATION1_ID;
         } else {
             return null;
@@ -156,31 +160,35 @@ public class ExternalLogicStub extends ExternalLogic {
 
     @Override
     public List<Course> getCoursesForInstructor(String siteId, int max) {
-        List<Course> sites = new ArrayList<Course>();
-        if (currentUserId.equals(FakeDataPreload.MAINT_USER_ID)) {
-            if (siteId != null && FakeDataPreload.LOCATION1_ID.equals(siteId)) {
+        List<Course> sites = new ArrayList<>();
+        if (StringUtils.equals(currentUserId, FakeDataPreload.MAINT_USER_ID)) {
+            if (StringUtils.equals(FakeDataPreload.LOCATION1_ID, siteId)) {
                 Course c = new Course(FakeDataPreload.LOCATION1_ID, FakeDataPreload.LOCATION1_TITLE);
+
                 if (siteId != null) {
-                    c.students = new ArrayList<Student>(); // fill with data?
+                    c.students = new ArrayList<>(); // fill with data?
                 }
+
                 sites.add( c );
             }
         }
+
         return sites;
     }
 
     @Override
     public <T> T getConfigurationSetting(String settingName, T defaultValue) {
         T returnValue = (T) defaultValue;
+
         return returnValue;
     };
 
     @Override
     public User getUser(String userId) {
-        User user = new org.sakaiproject.iclicker.model.User(userId,
-                "eid-"+userId, "DisplayName-"+userId, userId+"-sortname", userId+"@email.com");
-        user.fname = "First";
-        user.lname = "Last"+userId;
+        User user = new org.sakaiproject.iclicker.model.User(userId, "eid-" + userId, "DisplayName-" + userId, userId + "-sortname", userId + "@email.com");
+        user.setFname("First");
+        user.setLname("Last" + userId);
+
         return user;
     }
 

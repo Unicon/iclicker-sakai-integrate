@@ -29,9 +29,7 @@ import org.w3c.dom.Element;
 
 /**
  * Test class for the Sakai User object<br/>
- * This has to be here since I cannot create a User object in Sakai for some 
- * reason... sure would be nice if I could though -AZ
- * @author Sakai App Builder -AZ
+ * This has to be here since I cannot create a User object in Sakai for some reason... sure would be nice if I could though -AZ
  */
 @SuppressWarnings("unchecked")
 public class FakeUser implements User {
@@ -39,10 +37,12 @@ public class FakeUser implements User {
     private String userEid = "fakeEid";
     private String displayName = "Fake DisplayName";
 
-    public FakeUser() { }
+    public FakeUser() {
+    }
 
     /**
      * Construct an empty test user with an id set
+     * 
      * @param userId a id string
      */
     public FakeUser(String userId) {
@@ -51,6 +51,7 @@ public class FakeUser implements User {
 
     /**
      * Construct an empty test user with an id and eid set
+     * 
      * @param userId a id string
      * @param userEid a username string
      */
@@ -61,6 +62,7 @@ public class FakeUser implements User {
 
     /**
      * Construct an empty test user with an id and eid set
+     * 
      * @param userId a id string
      * @param userEid a username string
      * @param displayName a user display name
@@ -70,7 +72,6 @@ public class FakeUser implements User {
         this.userEid = userEid;
         this.displayName = displayName;
     }
-
 
     public boolean checkPassword(String pw) {
         return false;

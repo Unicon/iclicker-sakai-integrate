@@ -18,7 +18,7 @@
  */
 package org.sakaiproject.iclicker.impl.dao;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.sakaiproject.genericdao.api.search.Restriction;
 import org.sakaiproject.genericdao.api.search.Search;
@@ -31,8 +31,6 @@ import org.springframework.test.AbstractTransactionalSpringContextTests;
 
 /**
  * Testing for the specialized DAO methods (do not test the Generic Dao methods)
- * 
- * @author Sakai App Builder -AZ
  */
 public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests {
 
@@ -50,7 +48,7 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
         // point to the needed spring config files, must be on the classpath
         // (add component/src/webapp/WEB-INF to the build path in Eclipse),
         // they also need to be referenced in the project.xml file
-        return new String[] { "hibernate-test.xml", "spring-hibernate.xml" };
+        return new String[] {"hibernate-test.xml", "spring-hibernate.xml"};
     }
 
     // run this before each test starts
@@ -69,14 +67,11 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
         }
 
         // load up the test data preloader from spring
-        tdp = (FakeDataPreload) applicationContext
-                .getBean("org.sakaiproject.iclicker.impl.logic.test.FakeDataPreload");
-        if (tdp == null) {
-            throw new NullPointerException(
-                    "FakeDataPreload could not be retrieved from spring context");
-        }
+        tdp = (FakeDataPreload) applicationContext.getBean("org.sakaiproject.iclicker.impl.logic.test.FakeDataPreload");
 
-        // init the class if needed
+        if (tdp == null) {
+            throw new NullPointerException("FakeDataPreload could not be retrieved from spring context");
+        }
 
         // check the preloaded data
         Assert.assertTrue("Error preloading data", dao.countAll(ClickerRegistration.class) > 0);
@@ -87,15 +82,13 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
     }
 
     /**
-     * ADD unit tests below here, use testMethod as the name of the unit test, Note that if a method
-     * is overloaded you should include the arguments in the test name like so: testMethodClassInt
-     * (for method(Class, int);
+     * ADD unit tests below here, use testMethod as the name of the unit test, Note that if a method is overloaded you should include the arguments in the test name like so: testMethodClassInt (for
+     * method(Class, int);
      */
 
     // THESE TESTS VALIDATE THE HIBERNATE CONFIG
     /**
-     * Test method for
-     * {@link org.sakaiproject.iclicker.dao.impl.GenericHibernateDao#save(java.lang.Object)}.
+     * Test method for {@link org.sakaiproject.iclicker.dao.impl.GenericHibernateDao#save(java.lang.Object)}.
      */
     public void testSave() {
         ClickerRegistration item1 = new ClickerRegistration("New item1", ITEM_OWNER);
@@ -106,39 +99,35 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
     }
 
     /**
-     * Test method for
-     * {@link org.sakaiproject.iclicker.dao.impl.GenericHibernateDao#delete(java.lang.Object)}.
+     * Test method for {@link org.sakaiproject.iclicker.dao.impl.GenericHibernateDao#delete(java.lang.Object)}.
      */
     public void testDelete() {
         int count = dao.countAll(ClickerRegistration.class);
-        Assert.assertTrue( count > 6 );
+        Assert.assertTrue(count > 6);
         dao.delete(item);
         Assert.assertEquals(dao.countAll(ClickerRegistration.class), count - 1);
     }
 
     /**
-     * Test method for
-     * {@link org.sakaiproject.iclicker.dao.impl.GenericHibernateDao#findById(java.lang.Class, java.io.Serializable)}
-     * .
+     * Test method for {@link org.sakaiproject.iclicker.dao.impl.GenericHibernateDao#findById(java.lang.Class, java.io.Serializable)} .
      */
     public void testFindById() {
         Long id = item.getId();
         Assert.assertNotNull(id);
-        ClickerRegistration item1 = (ClickerRegistration) dao.findById(ClickerRegistration.class,
-                id);
+        ClickerRegistration item1 = (ClickerRegistration) dao.findById(ClickerRegistration.class, id);
         Assert.assertNotNull(item1);
         Assert.assertEquals(item, item1);
     }
 
     public void testObtainLock() {
         // check I can get a lock
-        assertTrue( dao.obtainLock("AZ.my.lock", "AZ1", 100) );
+        assertTrue(dao.obtainLock("AZ.my.lock", "AZ1", 100));
 
         // check someone else cannot get my lock
-        assertFalse( dao.obtainLock("AZ.my.lock", "AZ2", 100) );
+        assertFalse(dao.obtainLock("AZ.my.lock", "AZ2", 100));
 
         // check I can get my own lock again
-        assertTrue( dao.obtainLock("AZ.my.lock", "AZ1", 100) );
+        assertTrue(dao.obtainLock("AZ.my.lock", "AZ1", 100));
 
         // allow the lock to expire
         try {
@@ -149,7 +138,7 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
         }
 
         // check someone else can get my lock
-        assertTrue( dao.obtainLock("AZ.my.lock", "AZ2", 100) );
+        assertTrue(dao.obtainLock("AZ.my.lock", "AZ2", 100));
 
         // check invalid arguments cause failure
         try {
@@ -167,24 +156,23 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
     }
 
     public void testReleaseLock() {
-
         // check I can get a lock
-        assertTrue( dao.obtainLock("AZ.R.lock", "AZ1", 1000) );
+        assertTrue(dao.obtainLock("AZ.R.lock", "AZ1", 1000));
 
         // check someone else cannot get my lock
-        assertFalse( dao.obtainLock("AZ.R.lock", "AZ2", 1000) );
+        assertFalse(dao.obtainLock("AZ.R.lock", "AZ2", 1000));
 
         // check I can release my lock
-        assertTrue( dao.releaseLock("AZ.R.lock", "AZ1") );
+        assertTrue(dao.releaseLock("AZ.R.lock", "AZ1"));
 
         // check someone else can get my lock now
-        assertTrue( dao.obtainLock("AZ.R.lock", "AZ2", 1000) );
+        assertTrue(dao.obtainLock("AZ.R.lock", "AZ2", 1000));
 
         // check I cannot get the lock anymore
-        assertFalse( dao.obtainLock("AZ.R.lock", "AZ1", 1000) );
+        assertFalse(dao.obtainLock("AZ.R.lock", "AZ1", 1000));
 
         // check they can release it
-        assertTrue( dao.releaseLock("AZ.R.lock", "AZ2") );
+        assertTrue(dao.releaseLock("AZ.R.lock", "AZ2"));
 
         // check invalid arguments cause failure
         try {
@@ -193,6 +181,7 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
         } catch (IllegalArgumentException e) {
             assertNotNull(e);
         }
+
         try {
             dao.releaseLock(null, "AZ1");
             fail("Should have thrown an exception");
@@ -208,9 +197,7 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
         assertNotNull(keyId);
         assertTrue(dao.countAll(ClickerUserKey.class) > 0);
 
-        ClickerUserKey keyFind = dao.findOneBySearch(ClickerUserKey.class, new Search(
-                new Restriction("userId", "aaronz")
-        ));
+        ClickerUserKey keyFind = dao.findOneBySearch(ClickerUserKey.class, new Search(new Restriction("userId", "aaronz")));
         assertNotNull(keyFind);
         assertEquals(keyFind, key1);
 
@@ -220,12 +207,14 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
 
         // trying to save another key for this user should fail
         ClickerUserKey key2 = new ClickerUserKey("abcdefgh", "aaronz");
+
         try {
             dao.save(key2);
             fail("Should have thrown an exception");
         } catch (DataIntegrityViolationException e) {
             assertNotNull(e.getMessage());
         }
+
         assertNull(key2.getId());
     }
 
@@ -236,17 +225,13 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
         assertNotNull(keyId);
         assertTrue(dao.countAll(ClickerUserKey.class) > 0);
 
-        ClickerUserKey keyFind = dao.findOneBySearch(ClickerUserKey.class, new Search(
-                new Restriction("userId", "aaronz")
-        ));
+        ClickerUserKey keyFind = dao.findOneBySearch(ClickerUserKey.class, new Search(new Restriction("userId", "aaronz")));
         assertNotNull(keyFind);
         assertEquals(keyFind, key1);
 
         // delete the key should work
         dao.delete(key1);
-        keyFind = dao.findOneBySearch(ClickerUserKey.class, new Search(
-                new Restriction("userId", "aaronz")
-        ));
+        keyFind = dao.findOneBySearch(ClickerUserKey.class, new Search(new Restriction("userId", "aaronz")));
         assertNull(keyFind);
 
         // adding key2 should work since key1 is gone
@@ -255,7 +240,4 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
         assertNotNull(key2.getId());
     }
 
-    /**
-     * Add anything that supports the unit tests below here
-     */
 }
