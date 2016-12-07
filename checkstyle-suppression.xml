@@ -26,11 +26,4 @@
 
 <suppressions>
 
-<!--     <suppress files="AbstractExternalLogic\.java" checks="[a-zA-Z0-9]*"/> -->
-<!--     <suppress files="IClickerEntityProvider\.java" checks="[a-zA-Z0-9]*"/> -->
-<!--     <suppress files="IClickerLogic\.java" checks="[a-zA-Z0-9]*"/> -->
-<!--     <suppress files="IClickerLogicImplTest\.java" checks="[a-zA-Z0-9]*"/> -->
-<!--     <suppress files="RestServlet\.java" checks="[a-zA-Z0-9]*"/> -->
-<!--     <suppress files="ToolController\.java" checks="[a-zA-Z0-9]*"/> -->
-
 </suppressions>
