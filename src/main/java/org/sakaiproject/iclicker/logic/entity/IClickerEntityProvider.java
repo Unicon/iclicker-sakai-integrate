@@ -69,11 +69,10 @@ import lombok.Setter;
 /**
  * iClicker REST handler <br/>
  * This handles all the RESTful endpoint and data feed generation for the application
- * 
  */
-public class IClickerEntityProvider extends AbstractEntityProvider implements EntityProvider,
-        Createable, Resolvable, CollectionResolvable, Outputable, Inputable, Describeable,
-        ActionsExecutable, Redirectable, RequestAware {
+public class IClickerEntityProvider extends AbstractEntityProvider
+                implements EntityProvider, Createable, Resolvable, CollectionResolvable, Outputable, Inputable,
+                Describeable, ActionsExecutable, Redirectable, RequestAware {
 
     public static final String PREFIX = "iclicker";
     public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
@@ -130,7 +129,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         String courseId = view.getPathSegment(2);
 
         if (courseId == null) {
-            throw new IllegalArgumentException("valid courseId must be included in the URL /iclicker/students/{courseId}");
+            throw new IllegalArgumentException(
+                            "valid courseId must be included in the URL /iclicker/students/{courseId}");
         }
 
         String userId = externalLogic.getCurrentUserId();
@@ -168,7 +168,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         String courseId = view.getPathSegment(2);
 
         if (courseId == null) {
-            throw new IllegalArgumentException("valid courseId must be included in the URL /iclicker/gradebook/{courseId}");
+            throw new IllegalArgumentException(
+                            "valid courseId must be included in the URL /iclicker/gradebook/{courseId}");
         }
 
         String userId = externalLogic.getCurrentUserId();
@@ -204,7 +205,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         String clickerId = view.getPathSegment(2);
 
         if (clickerId == null) {
-            throw new IllegalArgumentException("valid clickerId must be included in the URL /iclicker/validate/{clickerId}");
+            throw new IllegalArgumentException(
+                            "valid clickerId must be included in the URL /iclicker/validate/{clickerId}");
         }
 
         HashMap<String, Object> m = new HashMap<>();
@@ -244,7 +246,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         ClickerRegistration cr = findClickerRegistration(ref.getId());
 
         if (cr == null) {
-            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")", "/activate", HttpServletResponse.SC_BAD_REQUEST);
+            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")", "/activate",
+                            HttpServletResponse.SC_BAD_REQUEST);
         }
 
         logic.setRegistrationActive(cr.getId(), true);
@@ -257,7 +260,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         ClickerRegistration cr = findClickerRegistration(ref.getId());
 
         if (cr == null) {
-            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")", "/deactivate", HttpServletResponse.SC_BAD_REQUEST);
+            throw new EntityException("Could not find clicker by id (" + ref.getId() + ")", "/deactivate",
+                            HttpServletResponse.SC_BAD_REQUEST);
         }
 
         logic.setRegistrationActive(cr.getId(), false);
@@ -271,7 +275,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
         String courseId = view.getPathSegment(2);
 
         if (courseId == null) {
-            throw new IllegalArgumentException("valid courseId must be included in the URL /iclicker/gradeitem/{courseId}");
+            throw new IllegalArgumentException(
+                            "valid courseId must be included in the URL /iclicker/gradeitem/{courseId}");
         }
 
         String userId = externalLogic.getCurrentUserId();
@@ -290,12 +295,14 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             String gradeItemName = view.getPathSegment(3);
 
             if (gradeItemName == null) {
-                throw new IllegalArgumentException("valid gbItemName must be included in the URL /iclicker/gradeitem/{courseId}/{gradeItemName}");
+                throw new IllegalArgumentException(
+                                "valid gbItemName must be included in the URL /iclicker/gradeitem/{courseId}/{gradeItemName}");
             }
 
             Gradebook gb = logic.getCourseGradebook(courseId, gradeItemName);
             gbItemOut = gb.getItems().get(0);
-        } else if (StringUtils.equalsIgnoreCase(Method.POST.toString(), view.getMethod()) || StringUtils.equalsIgnoreCase(Method.PUT.toString(), view.getMethod())) {
+        } else if (StringUtils.equalsIgnoreCase(Method.POST.toString(), view.getMethod()) || StringUtils
+                        .equalsIgnoreCase(Method.PUT.toString(), view.getMethod())) {
             ServletRequest request = requestGetter.getRequest();
 
             if (request == null) {
@@ -339,7 +346,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
 
             gbItemOut = logic.saveGradebookItem(gbItemIn);
         } else {
-            throw new EntityException("Method ("+view.getMethod()+") not supported", "iclicker/gradeitem", HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            throw new EntityException("Method (" + view.getMethod() + ") not supported", "iclicker/gradeitem",
+                            HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         }
 
         // do the encoding manually
@@ -349,7 +357,8 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             ar = new ActionReturn(out);
             ar.encoding = Formats.JSON_MIME_TYPE;
         } else {
-            String out = XML_HEADER + XMLTranscoder.makeXML(gbItemOut, "gradeitem", null, false, false, false, false, 6, null);
+            String out = XML_HEADER + XMLTranscoder.makeXML(gbItemOut, "gradeitem", null, false, false, false, false, 6,
+                            null);
             ar = new ActionReturn(out);
             ar.encoding = Formats.XML_MIME_TYPE;
         }
@@ -381,8 +390,7 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
     /**
      * Find the clicker by either the internal id or the clicker id
      * 
-     * @param id
-     *            the internal id or the clicker id
+     * @param id the internal id or the clicker id
      * @return the {@link ClickerRegistration} OR null if none can be found
      */
     private ClickerRegistration findClickerRegistration(String id) {
@@ -449,10 +457,10 @@ public class IClickerEntityProvider extends AbstractEntityProvider implements En
             return cr.getClickerId();
         } catch (ClickerIdInvalidException e) {
             throw new EntityException("Invalid clickerId (" + clickerId + "): " + e, "/register",
-                    HttpServletResponse.SC_BAD_REQUEST);
+                            HttpServletResponse.SC_BAD_REQUEST);
         } catch (IllegalStateException e) {
-            throw new EntityException("ClickerId is already registered (" + clickerId + "): " + e,
-                    "/register", HttpServletResponse.SC_CONFLICT);
+            throw new EntityException("ClickerId is already registered (" + clickerId + "): " + e, "/register",
+                            HttpServletResponse.SC_CONFLICT);
         }
     }
 

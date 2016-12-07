@@ -39,7 +39,7 @@ public class ExternalLogicStub extends ExternalLogic {
     /**
      * represents the current user userId, can be changed to simulate multiple users
      */
-    @Getter(onMethod=@__(@Override))
+    @Getter(onMethod = @__(@Override))
     public String currentUserId;
 
     /**
@@ -170,7 +170,7 @@ public class ExternalLogicStub extends ExternalLogic {
                     c.setStudents(new ArrayList<Student>()); // fill with data?
                 }
 
-                sites.add( c );
+                sites.add(c);
             }
         }
 

@@ -48,7 +48,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.w3c.dom.*;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import lombok.Getter;
@@ -64,22 +69,31 @@ import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Vector;
 
 /**
- * This is the implementation of the business logic interface,
- * this handles all the business logic and processing for the application
+ * This is the implementation of the business logic interface, this handles all the business logic and processing for the application
  */
 public class IClickerLogic {
 
     private static final Logger log = LoggerFactory.getLogger(IClickerLogic.class);
 
-    public static String VERSION = "1.5"; // should match the POM version
-    public static String VERSION_DATE = "20140906"; // the date in YYYYMMDD
+    public static final String VERSION = "11-SNAPSHOT"; // should match the POM version
+    public static final  String VERSION_DATE = "20140906"; // the date in YYYYMMDD
 
     // CONFIG
-    public static String DEFAULT_SERVER_URL = "http://localhost/sakai";
+    public static final String DEFAULT_SERVER_URL = "http://localhost/sakai";
     public String serverId = "UNKNOWN_SERVER_ID";
     public String serverURL = DEFAULT_SERVER_URL;
     public String domainURL = DEFAULT_SERVER_URL;
@@ -95,13 +109,10 @@ public class IClickerLogic {
     @Getter private List<String> failures = new Vector<>();
 
     /**
-     * Special tracker to see if the system is already running a thread,
-     * this is meant to ensure that more than one large scale operation is not
-     * running at once
+     * Special tracker to see if the system is already running a thread, this is meant to ensure that more than one large scale operation is not running at once
      */
     private WeakReference<BigRunner> runnerHolder;
-    @SuppressWarnings("FieldCanBeLocal")
-    private static String ICLICKER_TOOL_ID = "sakai.iclicker";
+    private static final String ICLICKER_TOOL_ID = "sakai.iclicker";
 
     @Setter private IClickerDao dao;
     @Setter @Getter private ExternalLogic externalLogic;
@@ -157,14 +168,13 @@ public class IClickerLogic {
     }
 
     /**
-     * Sends a notification to the list of admins,
-     * this is primarily for notifications of failures related to webservices failures
+     * Sends a notification to the list of admins, this is primarily for notifications of failures related to webservices failures
      * 
      * @param message the notification message to send
      * @param failure [OPTIONAL] the exception if there was one
      */
     public void sendNotification(String message, Exception failure) {
-        String body = "i>clicker Sakai integrate plugin notification ("+new Date()+")\n" + message + "\n";
+        String body = "i>clicker Sakai integrate plugin notification (" + new Date() + ")\n" + message + "\n";
 
         if (failure != null) {
             // get the stacktrace out
@@ -176,7 +186,7 @@ public class IClickerLogic {
 
             // add to failures record and trim it
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            failures.add( df.format(new Date()) + " :: " + StringUtils.abbreviate(message, 300) );
+            failures.add(df.format(new Date()) + " :: " + StringUtils.abbreviate(message, 300));
 
             while (failures.size() > 3) {
                 failures.remove(0);
@@ -195,8 +205,7 @@ public class IClickerLogic {
      * 
      * @param key the message key to lookup
      * @param locale the Locale in which to do the lookup
-     * @param args Array of arguments that will be filled in for params within the message 
-     * (params look like "{0}", "{1,date}", "{2,time}" within a message), or null if none
+     * @param args Array of arguments that will be filled in for params within the message (params look like "{0}", "{1,date}", "{2,time}" within a message), or null if none
      * @return the i18n string OR null if the key cannot be resolved
      */
     public String getMessage(String key, Locale locale, Object... args) {
@@ -216,6 +225,7 @@ public class IClickerLogic {
 
     /**
      * Attempt to authenticate a user given a login name and password (or user passkey)
+     * 
      * @param loginname the login name for the user
      * @param password the password for the user (might be the SSO user passkey)
      * @param ssoKey [OPTIONAL] the SSO encoded key if one exists in the request
@@ -251,9 +261,7 @@ public class IClickerLogic {
     }
 
     /**
-     * Make or find a user key for the given user,
-     * if they don't have one, this will create one, if they do it will retrieve it.
-     * It can also be used to generate a new user key
+     * Make or find a user key for the given user, if they don't have one, this will create one, if they do it will retrieve it. It can also be used to generate a new user key
      * 
      * @param userId [OPTIONAL] the internal user id (if null, use the current user id)
      * @param makeNew if true, make a new key even if the user already has one, if false, only make a key if they do not have one
@@ -270,13 +278,11 @@ public class IClickerLogic {
 
         if (!externalLogic.isUserInstructor(userId) && !externalLogic.isUserAdmin(userId)) {
             // if user is not an instructor or an admin then we will not make a key for them, this is to block students from getting a pass key
-            throw new IllegalStateException("current user ("+userId+") is not an instructor, cannot generate user key for them");
+            throw new IllegalStateException("current user (" + userId + ") is not an instructor, cannot generate user key for them");
         }
 
         // find the key for this user if one exists
-        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
-            new Restriction("userId", userId)
-        ));
+        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(new Restriction("userId", userId)));
 
         if (makeNew && cuk != null) {
             // remove the existing key so we can make a new one
@@ -319,9 +325,7 @@ public class IClickerLogic {
         }
 
         boolean valid = false;
-        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
-            new Restriction("userId", userId)
-        ));
+        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(new Restriction("userId", userId)));
 
         if (cuk != null) {
             if (StringUtils.equals(userKey, cuk.getUserKey())) {
@@ -352,8 +356,7 @@ public class IClickerLogic {
     }
 
     /**
-     * @return the SSO shared key value (or empty string otherwise)
-     * NOTE: this only works if SSO is enabled AND the user is an admin
+     * @return the SSO shared key value (or empty string otherwise) NOTE: this only works if SSO is enabled AND the user is an admin
      */
     public String getSharedKey() {
         String key = "";
@@ -366,10 +369,7 @@ public class IClickerLogic {
     }
 
     /**
-     * Verify the passed in encrypted SSO shared key is valid,
-     * this will return false if the key is not configured
-     * 
-     * Key must have been encoded like so (where timestamp is the unix time in seconds):
+     * Verify the passed in encrypted SSO shared key is valid, this will return false if the key is not configured Key must have been encoded like so (where timestamp is the unix time in seconds):
      * sentKey = hex(sha1(sharedKey + ":" + timestamp)) + "|" + timestamp
      * 
      * @param key the passed in key (should already be sha-1 and hex encoded with the timestamp appended)
@@ -389,19 +389,19 @@ public class IClickerLogic {
             int splitIndex = key.lastIndexOf('|');
 
             if ((splitIndex == -1) || (key.length() < splitIndex + 1)) {
-                throw new IllegalArgumentException("i>clicker shared key ("+key+") format is invalid (no |), must be {encoded key}|{timestamp}");
+                throw new IllegalArgumentException("i>clicker shared key (" + key + ") format is invalid (no |), must be {encoded key}|{timestamp}");
             }
 
             String actualKey = key.substring(0, splitIndex);
 
             if (StringUtils.isEmpty(actualKey)) {
-                throw new IllegalArgumentException("i>clicker shared key ("+key+") format is invalid (missing encoded key), must be {encoded key}|{timestamp}");
+                throw new IllegalArgumentException("i>clicker shared key (" + key + ") format is invalid (missing encoded key), must be {encoded key}|{timestamp}");
             }
 
             String timestampStr = key.substring(splitIndex + 1);
 
             if (StringUtils.isEmpty(timestampStr)) {
-                throw new IllegalArgumentException("i>clicker shared key ("+key+") format is invalid (missing timestamp), must be {encoded key}|{timestamp}");
+                throw new IllegalArgumentException("i>clicker shared key (" + key + ") format is invalid (missing timestamp), must be {encoded key}|{timestamp}");
             }
 
             long timestamp;
@@ -409,15 +409,15 @@ public class IClickerLogic {
             try {
                 timestamp = Long.parseLong(timestampStr);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("i>clicker shared key ("+key+") format is invalid (non numeric timestamp), must be {encoded key}|{timestamp}");
+                throw new IllegalArgumentException("i>clicker shared key (" + key + ") format is invalid (non numeric timestamp), must be {encoded key}|{timestamp}");
             }
 
             // check this key is still good (must be within 5 mins of now)
-            long unixTime = System.currentTimeMillis() / 1000l;
+            long unixTime = System.currentTimeMillis() / 1000L;
             long timeDiff = Math.abs(timestamp - unixTime);
 
-            if (timeDiff > 300l) {
-                throw new SecurityException("i>clicker shared key ("+key+") timestamp is out of date, this timestamp ("+timestamp+") is more than 5 minutes different from the current time ("+unixTime+")");
+            if (timeDiff > 300L) {
+                throw new SecurityException("i>clicker shared key (" + key + ") timestamp is out of date, this timestamp (" + timestamp + ") is more than 5 minutes different from the current time (" + unixTime + ")");
             }
 
             // finally we verify the key with the one in the config
@@ -425,7 +425,7 @@ public class IClickerLogic {
             String sha1Hex = Hex.encodeHexString(sha1Bytes);
 
             if (!StringUtils.equals(actualKey, sha1Hex)) {
-                throw new SecurityException("i>clicker encoded shared key ("+key+") does not match with the key ("+sha1Hex+") in Sakai (using timestamp: "+timestamp+")");
+                throw new SecurityException("i>clicker encoded shared key (" + key + ") does not match with the key (" + sha1Hex + ") in Sakai (using timestamp: " + timestamp + ")");
             }
 
             verified = true;
@@ -434,13 +434,12 @@ public class IClickerLogic {
         return verified;
     }
 
-
     // *******************************************************************************
     // Admin i>clicker tool in workspace handling
 
-
     /**
      * Executes the add or remove tool workspace operation
+     * 
      * @param type the type of runner to make, from BigRunner.RUNNER_TYPE_*
      * @return the runner object indicating progress
      * @throws IllegalArgumentException if the runner type is unknown
@@ -480,7 +479,7 @@ public class IClickerLogic {
                         try {
                             bigRunner.run();
                         } catch (Exception e) {
-                            String msg = "long running process ("+bigRunner+") failure: " + e;
+                            String msg = "long running process (" + bigRunner + ") failure: " + e;
                             sendNotification(msg, e);
                             log.warn(msg, e);
                             // sleep for 5 secs to hold the error state so it can be checked
@@ -495,23 +494,24 @@ public class IClickerLogic {
                         }
                     }
                 };
- 
+
                 new Thread(runnable).start(); // start up a thread to run this
                 log.info("Starting new long running process ({})", runner);
                 this.runnerHolder = new WeakReference<BigRunner>(runner);
             } else {
                 // failed to obtain the lock
-                String msg = "Could not obtain a lock ("+BigRunner.RUNNER_LOCK+") on server ("+serverId+"): "+gotLock;
+                String msg = "Could not obtain a lock (" + BigRunner.RUNNER_LOCK + ") on server (" + serverId + "): " + gotLock;
                 log.info(msg);
                 throw new ClickerLockException(msg, BigRunner.RUNNER_LOCK, serverId);
             }
         }
-  
+
         return runner;
     }
 
     /**
      * Get the currently running process if there is one
+     * 
      * @return the runner OR null if there is no running process
      */
     public BigRunner getRunnerStatus() {
@@ -533,6 +533,7 @@ public class IClickerLogic {
 
     /**
      * This returns an item based on an id if the user is allowed to access it
+     * 
      * @param id the id of the item to fetch
      * @return a ClickerRegistration or null if none found
      * @throws SecurityException if the current user cannot access this item
@@ -543,7 +544,7 @@ public class IClickerLogic {
 
         if (item != null) {
             if (!canReadItem(item, externalLogic.getCurrentUserId())) {
-                throw new SecurityException("User ("+externalLogic.getCurrentUserId()+") not allowed to access registration ("+item+")");
+                throw new SecurityException("User (" + externalLogic.getCurrentUserId() + ") not allowed to access registration (" + item + ")");
             }
         }
 
@@ -551,8 +552,7 @@ public class IClickerLogic {
     }
 
     /**
-     * This returns an item based on a clickerId for the current user if allowed to access it,
-     * this will return a null if the clickerId happens to be invalid or cannot be found
+     * This returns an item based on a clickerId for the current user if allowed to access it, this will return a null if the clickerId happens to be invalid or cannot be found
      * 
      * @param clickerId the clicker remote ID
      * @return a ClickerRegistration OR null if none found
@@ -563,8 +563,7 @@ public class IClickerLogic {
     }
 
     /**
-     * This returns an item based on a clickerId and ownerId if the user is allowed to access it,
-     * this will return a null if the clickerId is invalid or cannot be found
+     * This returns an item based on a clickerId and ownerId if the user is allowed to access it, this will return a null if the clickerId is invalid or cannot be found
      * 
      * @param clickerId the clicker remote ID
      * @param ownerId the clicker owner ID (user id)
@@ -589,14 +588,10 @@ public class IClickerLogic {
             return null;
         }
 
-        ClickerRegistration item = dao.findOneBySearch(ClickerRegistration.class, 
-            new Search( new Restriction[] {
-                new Restriction("clickerId", clickerId),
-                new Restriction("ownerId", userId)
-            }));
+        ClickerRegistration item = dao.findOneBySearch(ClickerRegistration.class, new Search(new Restriction[] {new Restriction("clickerId", clickerId), new Restriction("ownerId", userId)}));
         if (item != null) {
             if (!canReadItem(item, externalLogic.getCurrentUserId())) {
-                throw new SecurityException("User ("+externalLogic.getCurrentUserId()+") not allowed to access registration ("+item+")");
+                throw new SecurityException("User (" + externalLogic.getCurrentUserId() + ") not allowed to access registration (" + item + ")");
             }
         }
 
@@ -608,9 +603,8 @@ public class IClickerLogic {
      * @param userId sakai user id
      * @return true if the item can be read, false otherwise
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean canReadItem(ClickerRegistration item, String userId) {
-        log.debug("checking if can read for: {} and item={}", userId, item );
+        log.debug("checking if can read for: {} and item={}", userId, item);
         String locationId = "";
 
         if (StringUtils.equals(item.getOwnerId(), userId)) {
@@ -632,6 +626,7 @@ public class IClickerLogic {
 
     /**
      * Check if a specified user can write this item in a specified site
+     * 
      * @param item to be modified or removed
      * @param userId the internal user id (not username)
      * @return true if item can be modified, false otherwise
@@ -645,7 +640,7 @@ public class IClickerLogic {
         } else if (externalLogic.isUserAdmin(userId)) {
             // the system super user can modify any item
             return true;
-        } else if ( externalLogic.isInstructorOfUser(item.getOwnerId()) != null ) {
+        } else if (externalLogic.isInstructorOfUser(item.getOwnerId()) != null) {
             // we are allowing instructors to write items for students in their course
             return true;
         }
@@ -655,6 +650,7 @@ public class IClickerLogic {
 
     /**
      * This returns a List of items that are visible for a specified user
+     * 
      * @param userId the internal user id (not username)
      * @param locationId [OPTIONAL] a unique id which represents the current location of the user (entity reference)
      * @return a List of ClickerRegistration objects
@@ -665,14 +661,8 @@ public class IClickerLogic {
 
         if (locationId == null) {
             // get the items for this user only
-            l = dao.findBySearch(ClickerRegistration.class,
-                new Search(
-                    new Restriction[] {
-                        new Restriction("ownerId", userId),
-                        new Restriction("activated", true)
-                    }
-                )
-            );
+            l = dao.findBySearch(ClickerRegistration.class, new Search(new Restriction[] {new Restriction("ownerId",
+                            userId), new Restriction("activated", true)}));
         } else {
             // inst gets registrations for themselves only
             // TAs still able to get their remote registrations this way
@@ -682,14 +672,8 @@ public class IClickerLogic {
                 l = dao.findAll(ClickerRegistration.class);
             } else {
                 // student gets registrations for themselves only always
-                l = dao.findBySearch(ClickerRegistration.class,
-                    new Search(
-                        new Restriction[] {
-                            new Restriction("ownerId", userId),
-                            new Restriction("activated", true)
-                        }
-                    )
-                );
+                l = dao.findBySearch(ClickerRegistration.class, new Search(new Restriction[] {new Restriction("ownerId",
+                                userId), new Restriction("activated", true)}));
             }
         }
 
@@ -697,8 +681,8 @@ public class IClickerLogic {
     }
 
     /**
-     * ADMIN ONLY
-     * Only the admin can use this method to retrieve all clicker IDs
+     * ADMIN ONLY Only the admin can use this method to retrieve all clicker IDs
+     * 
      * @param first the first item (for paging and limiting)
      * @param max the max number of items to return
      * @param order [OPTIONAL] sort order for the items
@@ -708,7 +692,7 @@ public class IClickerLogic {
      */
     public List<ClickerRegistration> getAllItems(int first, int max, String order, String searchStr, boolean includeUserDisplayNames) {
         // admin only
-        if (! externalLogic.isUserAdmin(externalLogic.getCurrentUserId()) ) {
+        if (!externalLogic.isUserAdmin(externalLogic.getCurrentUserId())) {
             throw new SecurityException("Only admins can get the listing of all clicker registrations");
         }
 
@@ -719,7 +703,7 @@ public class IClickerLogic {
         Search s = new Search();
         s.setStart(first);
         s.setLimit(max);
-        s.addOrder( new Order(order) );
+        s.addOrder(new Order(order));
 
         if (!StringUtils.isBlank(searchStr)) {
             // maybe allow search on more than clickerId later
@@ -757,8 +741,8 @@ public class IClickerLogic {
     }
 
     /**
-     * Remove an item
-     * NOTE: only admins can fully remove a registration
+     * Remove an item NOTE: only admins can fully remove a registration
+     * 
      * @param item the ClickerRegistration to remove
      * @throws SecurityException if the user not allowed to remove the registration
      */
@@ -766,7 +750,7 @@ public class IClickerLogic {
         log.debug("In removeItem with item: {}", item);
 
         // check if current user can remove this item
-        if ( externalLogic.isUserAdmin(externalLogic.getCurrentUserId()) ) {
+        if (externalLogic.isUserAdmin(externalLogic.getCurrentUserId())) {
             dao.delete(item);
             log.info("Removing clicker registration: {}", item);
         } else {
@@ -776,11 +760,11 @@ public class IClickerLogic {
 
     /**
      * Save (Create or Update) an item (uses the current site)
+     * 
      * @param item the ClickerRegistration to create or update
      * @throws IllegalArgumentException if the item is null OR the owner id is not a valid user
      * @throws SecurityException if the user cannot save the registration for lack of perms
-     * @throws ClickerIdInvalidException if the clicker ID is invalid for some reason,
-     * the exception will indicate the type of validation failure
+     * @throws ClickerIdInvalidException if the clicker ID is invalid for some reason, the exception will indicate the type of validation failure
      */
     public void saveItem(ClickerRegistration item) {
         log.debug("In saveItem with item: {}", item);
@@ -796,7 +780,7 @@ public class IClickerLogic {
             clickerId = validateClickerId(item.getClickerId());
         }
 
-        item.setClickerId( clickerId );
+        item.setClickerId(clickerId);
 
         // set the owner to current if not set
         if (item.getOwnerId() == null) {
@@ -806,7 +790,7 @@ public class IClickerLogic {
             User u = externalLogic.getUser(item.getOwnerId());
 
             if (u == null) {
-                throw new IllegalArgumentException("user id ("+item.getOwnerId()+") is invalid (cannot match to user)");
+                throw new IllegalArgumentException("user id (" + item.getOwnerId() + ") is invalid (cannot match to user)");
             }
         }
 
@@ -828,13 +812,11 @@ public class IClickerLogic {
     }
 
     /**
-     * Creates a new clicker remote registration in the system for the current user,
-     * also push to national
+     * Creates a new clicker remote registration in the system for the current user, also push to national
      * 
      * @param clickerId the clicker remote ID
      * @return the registration
-     * @throws ClickerIdInvalidException if the clicker ID is invalid for some reason,
-     * the exception will indicate the type of validation failure
+     * @throws ClickerIdInvalidException if the clicker ID is invalid for some reason, the exception will indicate the type of validation failure
      * @throws ClickerRegisteredException if the clickerId is already registered
      * @throws SecurityException if the user cannot save the registration for lacks of perms
      */
@@ -843,14 +825,12 @@ public class IClickerLogic {
     }
 
     /**
-     * Creates a new clicker remote registration in the system,
-     * will push the registration to national as well
+     * Creates a new clicker remote registration in the system, will push the registration to national as well
      * 
      * @param clickerId the clicker remote ID
      * @param ownerId the owner of this registration
      * @return the registration
-     * @throws ClickerIdInvalidException if the clicker ID is invalid for some reason,
-     * the exception will indicate the type of validation failure
+     * @throws ClickerIdInvalidException if the clicker ID is invalid for some reason, the exception will indicate the type of validation failure
      * @throws ClickerRegisteredException if the clickerId is already registered
      * @throws IllegalArgumentException if the owner id is not a valid user
      * @throws SecurityException if the user cannot save the registration for lacks of perms
@@ -892,6 +872,7 @@ public class IClickerLogic {
 
     /**
      * Updates the activation of a registration for the current user
+     * 
      * @param registrationId the unique id of the registration
      * @param activated the new activation level
      * @return the registration if it was updated, null if not updated
@@ -912,7 +893,7 @@ public class IClickerLogic {
         String userId = externalLogic.getCurrentUserId();
 
         if (!canWriteItem(registration, userId)) {
-            throw new SecurityException("User ("+userId+") cannot update registration ("+registration+")");
+            throw new SecurityException("User (" + userId + ") cannot update registration (" + registration + ")");
         }
 
         boolean current = registration.isActivated();
@@ -933,25 +914,23 @@ public class IClickerLogic {
             // populate clickerRegistration data
             // get the set of all registrations
             Search search = new Search();
-            search.addRestriction( new Restriction("activated", true) ); // only active ones
+            search.addRestriction(new Restriction("activated", true)); // only active ones
 
-            //noinspection StatementWithEmptyBody
-            if (students.size() > 500) {
-                // just get all the registrations since this class is insanely huge
-            } else {
+            // noinspection StatementWithEmptyBody
+            if (students.size() <= 500) {
                 String[] owners = new String[students.size()];
 
                 for (int i = 0; i < students.size(); i++) {
                     owners[i] = students.get(i).getUserId();
                 }
 
-                search.addRestriction( new Restriction("ownerId", owners) );
+                search.addRestriction(new Restriction("ownerId", owners));
             }
 
             search.addOrder(new Order("ownerId"));
             List<ClickerRegistration> l = dao.findBySearch(ClickerRegistration.class, search);
             // create map of registrations to owners
-            HashMap<String, Set<ClickerRegistration>> ownerToReg = new HashMap<>(students.size());
+            HashMap<String, Set<ClickerRegistration>> ownerToReg = new HashMap<>();
 
             for (ClickerRegistration cr : l) {
                 if (!ownerToReg.containsKey(cr.getOwnerId())) {
@@ -988,7 +967,7 @@ public class IClickerLogic {
         Search search = new Search();
 
         if (activeOnly) {
-            search.addRestriction( new Restriction("activated", true) ); // only active ones
+            search.addRestriction(new Restriction("activated", true)); // only active ones
         }
 
         search.addRestriction(new Restriction("ownerId", userId));
@@ -998,9 +977,7 @@ public class IClickerLogic {
     }
 
     /**
-     * Get all the courses for the given user, note that this needs to be limited from
-     * outside this method for security,
-     * if the return is limited to a single course then the students are included
+     * Get all the courses for the given user, note that this needs to be limited from outside this method for security, if the return is limited to a single course then the students are included
      * 
      * @param courseId [OPTIONAL] limit the return to just this one site
      * @return the courses (up to 100 of them) which the user has instructor access in
@@ -1018,8 +995,7 @@ public class IClickerLogic {
     }
 
     /**
-     * @param courseId
-     *            a unique id which represents the current location of the user (entity reference)
+     * @param courseId a unique id which represents the current location of the user (entity reference)
      * @return the title for the context or "--------" (8 hyphens) if none found
      */
     public String getCourseTitle(String courseId) {
@@ -1027,13 +1003,10 @@ public class IClickerLogic {
     }
 
     /**
-     * Gets the gradebook data for a given site, 
-     * this uses the gradebook security so it is safe for
-     * anyone to call
+     * Gets the gradebook data for a given site, this uses the gradebook security so it is safe for anyone to call
      * 
      * @param courseId a sakai siteId (cannot be group Id)
-     * @param gbItemName [OPTIONAL] an item name to fetch from this gradebook (limit to this item only),
-     * if null then all items are returned
+     * @param gbItemName [OPTIONAL] an item name to fetch from this gradebook (limit to this item only), if null then all items are returned
      */
     public Gradebook getCourseGradebook(String courseId, String gbItemName) {
         Gradebook gb = externalLogic.getCourseGradebook(courseId, gbItemName);
@@ -1055,6 +1028,7 @@ public class IClickerLogic {
 
     /**
      * Save a gradebook (saves all items in the gradebook)
+     * 
      * @param gb the gradebook to save
      * @return the updated gradebook items and scores, contains any errors that occurred
      */
@@ -1064,13 +1038,12 @@ public class IClickerLogic {
         if (gb != null) {
             for (GradebookItem gradebookItem : gb.getItems()) {
                 gradebookItem.setGradebookId(gb.getId());
-                items.add( saveGradebookItem(gradebookItem) );
+                items.add(saveGradebookItem(gradebookItem));
             }
         }
 
         return items;
     }
-
 
     // **********************************************************************************
     // DATA encoding methods - put the data into the format desired by iclicker
@@ -1079,18 +1052,15 @@ public class IClickerLogic {
         if (registration == null) {
             throw new IllegalArgumentException("registration must be set");
         }
-        /* SAMPLE
-            <Register>
-              <S FirstName="Tim" LastName="Stelzer" StudentID="tstelzer" URL="http://www.iclicker.com/" clickerID="11111111" Enabled="True"></S>
-            </Register>
+        /*
+         * SAMPLE <Register> <S FirstName="Tim" LastName="Stelzer" StudentID="tstelzer" URL="http://www.iclicker.com/" clickerID="11111111" Enabled="True"></S> </Register>
          */
         User user = externalLogic.getUser(registration.getOwnerId());
 
         if (user == null) {
-            throw new IllegalStateException("Could not get info about the user ("+registration.getOwnerId()+") related to this clicker registration");
+            throw new IllegalStateException("Could not get info about the user (" + registration.getOwnerId() + ") related to this clicker registration");
         }
 
-        @SuppressWarnings("StringBufferReplaceableByString")
         StringBuilder sb = new StringBuilder();
         sb.append("<Register>\n");
         sb.append("  <S DisplayName=\"");
@@ -1117,9 +1087,8 @@ public class IClickerLogic {
     }
 
     /**
-     * Encode response from registration of clicker data
-     * This option should be available where the instructor already has the clicker registration file (Remoteid.csv) 
-     * and wants to upload the registration(s) to the CMS Server.
+     * Encode response from registration of clicker data This option should be available where the instructor already has the clicker registration file (Remoteid.csv) and wants to upload the
+     * registration(s) to the CMS Server.
      * 
      * @param registrations the registrations resulting from the action
      * @param status true if new registration, false otherwise
@@ -1128,38 +1097,26 @@ public class IClickerLogic {
      * @throws IllegalStateException if the user cannot be found
      * @throws IllegalArgumentException if the data is invalid
      */
-    public String encodeClickerRegistrationResult(List<ClickerRegistration> registrations, boolean status, String message) {
+    public String encodeClickerRegistrationResult(List<ClickerRegistration> registrations, boolean status,
+                    String message) {
         if (registrations == null || registrations.isEmpty()) {
             throw new IllegalArgumentException("registrations must be set");
         }
         if (message == null) {
             throw new IllegalArgumentException("message must be set");
         }
-        /* SAMPLE
-            1) When clicker is already registered to some one else - the same
-            message should be returned that is displayed in the plug-in in xml
-            format
-            <RetStatus Status="False" Message=""/>
-            
-            2) When clicker is already registered to the same user - the same
-            message should be returned that is displayed in the plug-in in xml
-            format.
-            <RetStatus Status="False" Message=""/>
-            
-            3) When studentid is not found in the CMS
-            <RetStatus Status="False" Message="Student not found in the CMS"/>
-            
-            4) Successful registration - 
-            <RetStatus Status="True" Message="..."/>
+        /*
+         * SAMPLE 1) When clicker is already registered to some one else - the same message should be returned that is displayed in the plug-in in xml format <RetStatus Status="False" Message=""/> 2)
+         * When clicker is already registered to the same user - the same message should be returned that is displayed in the plug-in in xml format. <RetStatus Status="False" Message=""/> 3) When
+         * studentid is not found in the CMS <RetStatus Status="False" Message="Student not found in the CMS"/> 4) Successful registration - <RetStatus Status="True" Message="..."/>
          */
 
         return "<RetStatus Status=\"" + (status ? "True" : "False") + "\" Message=\"" + escapeForXML(message) + "\" />";
     }
 
     /**
-     * The xml format to upload students registration to the CMS Server remains the same as the national registration 
-     * web services and this upload should be treated as if the user is registering the remotes manually inside the 
-     * plug-in i.e all applicable messages should be returned <br/>
+     * The xml format to upload students registration to the CMS Server remains the same as the national registration web services and this upload should be treated as if the user is registering the
+     * remotes manually inside the plug-in i.e all applicable messages should be returned <br/>
      * NOTE: we are ignoring the email and name inputs because we will get them from the user lookup of the id
      * 
      * @param xml XML
@@ -1169,10 +1126,8 @@ public class IClickerLogic {
      */
     public ClickerRegistration decodeClickerRegistration(String xml) {
         /*
-            <Register>
-            <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
-                StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
-            </Register>
+         * <Register> <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com"
+         * URL="http://sakaiproject.org"; ClickerID="11111111"></S> </Register>
          */
 
         if (StringUtils.isBlank(xml)) {
@@ -1192,7 +1147,7 @@ public class IClickerLogic {
         Document doc;
 
         try {
-            doc = db.parse( new ByteArrayInputStream(xml.getBytes()) );
+            doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
         } catch (SAXException e) {
             throw new RuntimeException("XML read failure: " + e, e);
         } catch (IOException e) {
@@ -1241,10 +1196,8 @@ public class IClickerLogic {
         if (courses == null) {
             throw new IllegalArgumentException("courses must be set");
         }
-        /* SAMPLE
-            <coursemembership username="test_instructor01">
-              <course id="BFW61" name="BFW - iClicker Test" created="111111111" published="true" usertype="I" />
-            </coursemembership>
+        /*
+         * SAMPLE <coursemembership username="test_instructor01"> <course id="BFW61" name="BFW - iClicker Test" created="111111111" published="true" usertype="I" /> </coursemembership>
          */
 
         User user = externalLogic.getUser(instructorId);
@@ -1279,17 +1232,15 @@ public class IClickerLogic {
         return sb.toString();
     }
 
-    private static String SCORE_KEY = "${SCORE}";
+    private static final String SCORE_KEY = "${SCORE}";
+
     public String encodeGradebook(Gradebook gradebook) {
         if (gradebook == null) {
             throw new IllegalArgumentException("gradebook must be set");
         }
-        /* SAMPLE
-            <coursegradebook courseid="BFW61">
-              <user id="lm_student01" usertype="S">
-                <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
-              </user>
-            </coursegradebook>
+        /*
+         * SAMPLE <coursegradebook courseid="BFW61"> <user id="lm_student01" usertype="S"> <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/> </user>
+         * </coursegradebook>
          */
 
         // first make the map of lineitems strings and scores
@@ -1350,7 +1301,9 @@ public class IClickerLogic {
         LinkedHashMap<String, String> lineitems = new LinkedHashMap<>();
 
         for (GradebookItem gbItem : gradebookItems) {
-            lineitems.put(gbItem.getName(), "<lineitem name=\"" + escapeForXML(gbItem.getName()) + "\" pointspossible=\"" + (gbItem.getPointsPossible() == null ? "" : gbItem.getPointsPossible()) + "\" type=\"" + (gbItem.getType() == null ? "" : escapeForXML(gbItem.getType())) + "\" score=\"" + SCORE_KEY + "\"/>");
+            lineitems.put(gbItem.getName(), "<lineitem name=\"" + escapeForXML(gbItem
+                .getName()) + "\" pointspossible=\"" + (gbItem.getPointsPossible() == null ? "" : gbItem.getPointsPossible()) + "\" type=\"" + (gbItem.getType() == null ? "" : escapeForXML(gbItem
+                .getType())) + "\" score=\"" + SCORE_KEY + "\"/>");
         }
 
         return lineitems;
@@ -1360,11 +1313,10 @@ public class IClickerLogic {
         if (course == null) {
             throw new IllegalArgumentException("course must be set");
         }
-        /* SAMPLE
-            <courseenrollment courseid="9ebcb080-02b6-43a9-8dc5-6aef890db579">
-              <user id="dbcc75e8-caeb-4e1d-b165-83402208da6e" usertype="S" firstname="Student" lastname="3333" emailid="" uniqueid="stud3" clickerid="" whenadded="" />
-              <user id="1d7bc55c-4d84-4099-a8e9-821fad061dc8" usertype="S" firstname="Studnet" lastname="One" emailid="" uniqueid="stud1" clickerid="" whenadded="" />
-            </courseenrollment>
+        /*
+         * SAMPLE <courseenrollment courseid="9ebcb080-02b6-43a9-8dc5-6aef890db579"> <user id="dbcc75e8-caeb-4e1d-b165-83402208da6e" usertype="S" firstname="Student" lastname="3333" emailid=""
+         * uniqueid="stud3" clickerid="" whenadded="" /> <user id="1d7bc55c-4d84-4099-a8e9-821fad061dc8" usertype="S" firstname="Studnet" lastname="One" emailid="" uniqueid="stud1" clickerid=""
+         * whenadded="" /> </courseenrollment>
          */
 
         StringBuilder sb = new StringBuilder();
@@ -1390,9 +1342,9 @@ public class IClickerLogic {
             sb.append("\" uniqueid=\"");
             sb.append(escapeForXML(student.getUsername()));
             sb.append("\" clickerid=\"");
-            sb.append(escapeForXML( cidsDates[0] ));
+            sb.append(escapeForXML(cidsDates[0]));
             sb.append("\" whenadded=\"");
-            sb.append(escapeForXML( cidsDates[1] ));
+            sb.append(escapeForXML(cidsDates[1]));
             sb.append("\" />\n");
         }
 
@@ -1404,14 +1356,8 @@ public class IClickerLogic {
 
     public Gradebook decodeGradebookXML(String xml) {
         /*
-            <coursegradebook courseid="BFW61">
-              <user id="lm_student01" usertype="S">
-                <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
-              </user>
-              <user id="lm_student02" usertype="S">
-                <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
-              </user>
-            </coursegradebook>
+         * <coursegradebook courseid="BFW61"> <user id="lm_student01" usertype="S"> <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/> </user> <user
+         * id="lm_student02" usertype="S"> <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/> </user> </coursegradebook>
          */
 
         if (StringUtils.isBlank(xml)) {
@@ -1430,7 +1376,7 @@ public class IClickerLogic {
         Document doc;
 
         try {
-            doc = db.parse( new ByteArrayInputStream(xml.getBytes()) );
+            doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
         } catch (SAXException e) {
             throw new RuntimeException("XML read failure: " + e, e);
         } catch (IOException e) {
@@ -1543,38 +1489,18 @@ public class IClickerLogic {
         boolean hasErrors = false;
 
         for (GradebookItem gbItem : items) {
-            if (gbItem.getScoreErrors() != null && ! gbItem.getScoreErrors().isEmpty()) {
+            if (gbItem.getScoreErrors() != null && !gbItem.getScoreErrors().isEmpty()) {
                 hasErrors = true;
                 break;
             }
         }
 
-        /* SAMPLE
-            <errors courseid="BFW61">
-              <Userdoesnotexisterrors>
-                <user id="student03" />
-              </Userdoesnotexisterrors>
-              <Scoreupdateerrors>
-                <user id="student02">
-                  <lineitem name="Decsample" pointspossible="0" type="Text" score="9" />
-                </user>
-              </Scoreupdateerrors>
-              <PointsPossibleupdateerrors>
-                <user id="6367a431-557c-4869-88a7-229c2398f6ec">
-                  <lineitem name="CMSIntTEST01" pointspossible="50" type="iclicker polling scores" score="70" />
-                </user>
-              </PointsPossibleupdateerrors>
-              <Scoreupdateerrors>
-                <user id="iclicker_student01">
-                  <lineitem name="Mac-integrate-2" pointspossible="31" type="092509Mac" score="13"/>
-                </user>
-              </Scoreupdateerrors>
-              <Generalerrors>
-                <user id="student02" error="CODE">
-                  <lineitem name="itemName" pointspossible="35" score="XX" error="CODE" />
-                </user>
-              </Generalerrors>
-            </errors>
+        /*
+         * SAMPLE <errors courseid="BFW61"> <Userdoesnotexisterrors> <user id="student03" /> </Userdoesnotexisterrors> <Scoreupdateerrors> <user id="student02"> <lineitem name="Decsample"
+         * pointspossible="0" type="Text" score="9" /> </user> </Scoreupdateerrors> <PointsPossibleupdateerrors> <user id="6367a431-557c-4869-88a7-229c2398f6ec"> <lineitem name="CMSIntTEST01"
+         * pointspossible="50" type="iclicker polling scores" score="70" /> </user> </PointsPossibleupdateerrors> <Scoreupdateerrors> <user id="iclicker_student01"> <lineitem name="Mac-integrate-2"
+         * pointspossible="31" type="092509Mac" score="13"/> </user> </Scoreupdateerrors> <Generalerrors> <user id="student02" error="CODE"> <lineitem name="itemName" pointspossible="35" score="XX"
+         * error="CODE" /> </user> </Generalerrors> </errors>
          */
 
         String output = null;
@@ -1591,7 +1517,7 @@ public class IClickerLogic {
             Map<String, StringBuilder> errorItems = new LinkedHashMap<>();
 
             for (GradebookItem gbItem : items) {
-                if (gbItem.getScoreErrors() != null && ! gbItem.getScoreErrors().isEmpty()) {
+                if (gbItem.getScoreErrors() != null && !gbItem.getScoreErrors().isEmpty()) {
                     for (GradebookItemScore score : gbItem.getScores()) {
                         if (score.getError() != null) {
                             String lineitem = lineitems.get(gbItem.getName());
@@ -1601,7 +1527,7 @@ public class IClickerLogic {
 
                                 if (invalidUserIds.add(score.getUserId())) {
                                     // only if the invalid user is not already listed in the errors
-                                    if (! errorItems.containsKey(key)) {
+                                    if (!errorItems.containsKey(key)) {
                                         errorItems.put(key, new StringBuilder());
                                     }
 
@@ -1612,22 +1538,20 @@ public class IClickerLogic {
                             } else if (StringUtils.equals(AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS, score.getError())) {
                                 String key = AbstractExternalLogic.POINTS_POSSIBLE_UPDATE_ERRORS;
 
-                                if (! errorItems.containsKey(key)) {
+                                if (!errorItems.containsKey(key)) {
                                     errorItems.put(key, new StringBuilder());
                                 }
 
-                                @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
                                 String li = lineitem.replace(SCORE_KEY, score.getGrade());
                                 sbe.append("    <user id=\"").append(score.getUserId()).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
                             } else if (StringUtils.equals(AbstractExternalLogic.SCORE_UPDATE_ERRORS, score.getError())) {
                                 String key = AbstractExternalLogic.SCORE_UPDATE_ERRORS;
 
-                                if (! errorItems.containsKey(key)) {
+                                if (!errorItems.containsKey(key)) {
                                     errorItems.put(key, new StringBuilder());
                                 }
 
-                                @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
                                 String li = lineitem.replace(SCORE_KEY, score.getGrade());
                                 sbe.append("    <user id=\"").append(score.getUserId()).append("\">\n").append("      ").append(li).append("\n").append("    </user>\n");
@@ -1635,14 +1559,16 @@ public class IClickerLogic {
                                 // general error
                                 String key = AbstractExternalLogic.GENERAL_ERRORS;
 
-                                if (! errorItems.containsKey(key)) {
+                                if (!errorItems.containsKey(key)) {
                                     errorItems.put(key, new StringBuilder());
                                 }
 
-                                @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                                 StringBuilder sbe = errorItems.get(key);
                                 String li = lineitem.replace(SCORE_KEY, score.getGrade());
-                                sbe.append("    <user id=\"").append(score.getUserId()).append("\" error=\"").append(score.getError()).append("\">\n").append("      <error type=\"").append(score.getError()).append("\" />\n").append("      ").append(li).append("\n").append("    </user>\n");
+                                sbe.append("    <user id=\"").append(score.getUserId()).append("\" error=\"")
+                                    .append(score.getError()).append("\">\n").append("      <error type=\"")
+                                    .append(score.getError()).append("\" />\n").append("      ").append(li)
+                                    .append("\n").append("    </user>\n");
                             }
                         }
                     }
@@ -1725,21 +1651,20 @@ public class IClickerLogic {
         return new String[] {clickerIds, clickerAddedDates};
     }
 
-
-    /* ************************************************************************
-     * Clicker ID validation
-     * ************************************************************************
+    /*
+     * ************************************************************************ Clicker ID validation ************************************************************************
      */
 
     ThreadLocal<String> lastValidGOKey = new ThreadLocal<>();
 
-    public static String CLICKERID_SAMPLE = "11A4C277";
+    public static final String CLICKERID_SAMPLE = "11A4C277";
+
     /**
      * Cleans up and validates a given clickerId
+     * 
      * @param clickerId a remote clicker ID
      * @return the cleaned up and valid clicker ID
-     * @throws ClickerIdInvalidException if the id is invalid for some reason,
-     * the exception will indicate the type of validation failure
+     * @throws ClickerIdInvalidException if the id is invalid for some reason, the exception will indicate the type of validation failure
      */
     public String validateClickerId(String clickerId) {
         return validateClickerId(clickerId, null);
@@ -1747,11 +1672,11 @@ public class IClickerLogic {
 
     /**
      * Cleans up and validates a given clickerId
+     * 
      * @param clickerId a remote clicker ID
      * @param lastName OPTIONAL user lastname (only used for GO checks), defaults to current user
      * @return the cleaned up and valid clicker ID
-     * @throws ClickerIdInvalidException if the id is invalid for some reason,
-     * the exception will indicate the type of validation failure
+     * @throws ClickerIdInvalidException if the id is invalid for some reason, the exception will indicate the type of validation failure
      */
     public String validateClickerId(String clickerId, String lastName) {
         if (StringUtils.isBlank(clickerId)) {
@@ -1770,7 +1695,7 @@ public class IClickerLogic {
 
             if (StringUtils.isEmpty(lastName)) {
                 if (this.externalLogic.getCurrentUserId() == null) {
-                    throw new ClickerIdInvalidException("No current user available, cannot validate GO clickerid: "+clickerId, Failure.GO_NO_USER, clickerId);
+                    throw new ClickerIdInvalidException("No current user available, cannot validate GO clickerid: " + clickerId, Failure.GO_NO_USER, clickerId);
                 }
 
                 User u = this.externalLogic.getUser(this.externalLogic.getCurrentUserId());
@@ -1778,7 +1703,7 @@ public class IClickerLogic {
             }
 
             // store the validated clicker to avoid checking the WS repeatedly in a single request
-            String currentGOKey = clickerId+":"+lastName;
+            String currentGOKey = clickerId + ":" + lastName;
             String lastValidKey = this.lastValidGOKey.get();
 
             if (!StringUtils.equals(currentGOKey, lastValidKey)) {
@@ -1791,7 +1716,8 @@ public class IClickerLogic {
             clickerId = clickerId.trim().toUpperCase();
 
             if (!clickerId.matches("[0-9A-F]+")) {
-                throw new ClickerIdInvalidException("clickerId can only contains A-F and 0-9", Failure.CHARS, clickerId);
+                throw new ClickerIdInvalidException("clickerId can only contains A-F and 0-9", Failure.CHARS,
+                                clickerId);
             }
 
             while (clickerId.length() < 8) {
@@ -1815,21 +1741,20 @@ public class IClickerLogic {
             }
 
             if (checksum != 0) {
-                throw new ClickerIdInvalidException("clickerId checksum ("+checksum+") validation failed", Failure.CHECKSUM, clickerId);
+                throw new ClickerIdInvalidException("clickerId checksum (" + checksum + ") validation failed", Failure.CHECKSUM, clickerId);
             }
         } else {
             // totally invalid clicker length
             this.lastValidGOKey.remove();
-            throw new ClickerIdInvalidException("clicker_id is an invalid length ("+clickerIdLength+"), must be 8 or 12 chars", Failure.LENGTH, clickerId);
+            throw new ClickerIdInvalidException("clicker_id is an invalid length (" + clickerIdLength + "), must be 8 or 12 chars", Failure.LENGTH, clickerId);
         }
 
         return clickerId;
     }
 
     /**
-     * For all remoteids starting with 2, 4, 8, we have to generate an alternate id
-     * and concatenate it with the existing remote ids for that particular user in the data
-     * sent to the iclicker desktop app (this is like creating an extra clickerid based on the existing ones)
+     * For all remoteids starting with 2, 4, 8, we have to generate an alternate id and concatenate it with the existing remote ids for that particular user in the data sent to the iclicker desktop
+     * app (this is like creating an extra clickerid based on the existing ones)
      * 
      * @param clickerId a remote clicker ID
      * @return a translated clicker ID OR null if no translation is required or id is invalid
@@ -1844,14 +1769,14 @@ public class IClickerLogic {
                 char startsWith = clickerId.charAt(0);
                 if ('2' == startsWith || '4' == startsWith || '8' == startsWith) {
                     // found clicker to translate
-                    int p1 = Integer.parseInt("0"+clickerId.charAt(1), 16);
+                    int p1 = Integer.parseInt("0" + clickerId.charAt(1), 16);
                     int p2 = Integer.parseInt(clickerId.substring(2, 4), 16);
                     int p3 = Integer.parseInt(clickerId.substring(4, 6), 16);
                     int p4 = p1 ^ p2 ^ p3;
                     String part4 = Integer.toHexString(p4).toUpperCase();
 
                     if (part4.length() == 1) {
-                        part4 = "0"+part4;
+                        part4 = "0" + part4;
                     }
 
                     alternateId = "0" + clickerId.substring(1, 6) + part4;
@@ -1864,12 +1789,10 @@ public class IClickerLogic {
         return alternateId;
     }
 
-
     // GO WEBSERVICES
 
     /**
-     * Verify a clicker id with the GO webservices server,
-     * Returns true on success OR ClickerIdInvalidException on failure
+     * Verify a clicker id with the GO webservices server, Returns true on success OR ClickerIdInvalidException on failure
      *
      * @param clickerGOId 12 char clicker go id
      * @param studentLastName user last name
@@ -1880,7 +1803,7 @@ public class IClickerLogic {
      */
     public boolean wsGoVerifyId(String clickerGOId, String studentLastName) {
         if (clickerGOId == null || studentLastName == null) {
-            throw new IllegalArgumentException("clickerGOId="+clickerGOId+" and studentLastName="+studentLastName+" must both be set");
+            throw new IllegalArgumentException("clickerGOId=" + clickerGOId + " and studentLastName=" + studentLastName + " must both be set");
         }
 
         String resultXML;
@@ -1891,45 +1814,40 @@ public class IClickerLogic {
             Map<String, String> headers = new HashMap<String, String>();
             headers.put("Host", "www.iclickergo.com");
             headers.put("Content-Type", "application/soap+xml; charset=utf-8");
-            String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<soap12:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap12=\"http://www.w3.org/2003/05/soap-envelope\">\n" +
-                    "  <soap12:Body>\n" +
-                    "    <GetRegisteredForClickerMAC xmlns=\"http://www.iclicker.com/\">\n" +
-                    "      <pVarClickerID>"+encodedClickerId+"</pVarClickerID>\n" +
-                    "    </GetRegisteredForClickerMAC>\n" +
-                    "  </soap12:Body>\n" +
-                    "</soap12:Envelope>";
+            String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + "<soap12:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap12=\"http://www.w3.org/2003/05/soap-envelope\">\n" + "  <soap12:Body>\n" + "    <GetRegisteredForClickerMAC xmlns=\"http://www.iclicker.com/\">\n" + "      <pVarClickerID>" + encodedClickerId + "</pVarClickerID>\n" + "    </GetRegisteredForClickerMAC>\n" + "  </soap12:Body>\n" + "</soap12:Envelope>";
             HttpResponse response = HttpRESTUtils.fireRequest(url, HttpRESTUtils.Method.POST, null, headers, xml, true);
             resultXML = getXMLAndCheckResponse(response, "<GetRegisteredForClickerMACResult>", "</GetRegisteredForClickerMACResult>", "<GetRegisteredForClickerMACResult />");
             resultXML = StringUtils.trimToNull(resultXML);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to post verify id ("+clickerGOId+") to webservice ("+url+"): " + e);
+            throw new RuntimeException(
+                            "Failed to post verify id (" + clickerGOId + ") to webservice (" + url + "): " + e);
         }
- 
+
         if (resultXML == null) {
             // no registration matches
-            throw new ClickerIdInvalidException("No match found on the server for clicker: "+clickerGOId, Failure.GO_NO_MATCH, clickerGOId);
+            throw new ClickerIdInvalidException("No match found on the server for clicker: " + clickerGOId,
+                            Failure.GO_NO_MATCH, clickerGOId);
         } else {
             // <StudentEnrol><S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/></StudentEnrol>
             resultXML = new String(Base64.decodeBase64(resultXML));
-  
+
             if (StringUtils.contains(resultXML, "StudentEnrol") && StringUtils.contains(resultXML, "LastName")) {
                 Map<String, String> data = decodeGetRegisteredForClickerMACResult(resultXML);
                 String lastName = data.get("LastName"); // StudentEnrol->LastName;
                 boolean verified = studentLastName.equalsIgnoreCase(lastName);
-  
+
                 if (!verified) {
                     // should we log a warning here? -AZ
-                    throw new ClickerIdInvalidException("Lastname ("+studentLastName+") does not match with registered lastname ("+lastName+") for clicker ("+clickerGOId+")", Failure.GO_LASTNAME, clickerGOId);
+                    throw new ClickerIdInvalidException("Lastname (" + studentLastName + ") does not match with registered lastname (" + lastName + ") for clicker (" + clickerGOId + ")", Failure.GO_LASTNAME, clickerGOId);
                 }
             } else {
                 // structure did not properly match
-                String msg = "i>clicker Webservices return structure does not match expected format (please contact support): "+resultXML;
+                String msg = "i>clicker Webservices return structure does not match expected format (please contact support): " + resultXML;
                 log.error(msg);
                 throw new RuntimeException(msg);
             }
         }
-  
+
         return true;
     }
 
@@ -1943,24 +1861,24 @@ public class IClickerLogic {
      */
     private String getXMLAndCheckResponse(HttpResponse response, String start, String end, String emptyIndicator) {
         if (response.getResponseCode() >= 400) {
-            String msg = "i>clicker Webservices failure: bad response code ("+response.responseCode+"), message: " + response.responseMessage;
+            String msg = "i>clicker Webservices failure: bad response code (" + response.responseCode + "), message: " + response.responseMessage;
             log.error(msg);
             throw new IllegalStateException(msg);
         }
-  
+
         String xml;
         String body = response.getResponseBody();
-  
+
         if (body != null) {
             body = body.trim();
-  
+
             if (emptyIndicator != null && StringUtils.contains(body, emptyIndicator)) {
                 xml = "";
             } else {
                 String result = StringUtils.substringBetween(body, start, end);
 
                 if (result == null) {
-                    String msg = "i>clicker Webservices failure: ("+response.responseCode+"), message:" + response.responseMessage+" : body="+body;
+                    String msg = "i>clicker Webservices failure: (" + response.responseCode + "), message:" + response.responseMessage + " : body=" + body;
                     log.error(msg);
                     throw new IllegalStateException(msg);
                 }
@@ -1968,13 +1886,13 @@ public class IClickerLogic {
                 xml = StringEscapeUtils.unescapeXml(result);
 
                 if (xml.startsWith("<RetStatus")) {
-                    String msg = "i>clicker Webservices failure: ("+response.responseCode+"), message:" + response.responseMessage+" : xml="+xml;
+                    String msg = "i>clicker Webservices failure: (" + response.responseCode + "), message:" + response.responseMessage + " : xml=" + xml;
                     log.error(msg);
                     throw new IllegalStateException(msg);
                 }
             }
         } else {
-            String msg = "i>clicker Webservices failure: no response body from server: ("+response.responseCode+"), message:" + response.responseMessage;
+            String msg = "i>clicker Webservices failure: no response body from server: (" + response.responseCode + "), message:" + response.responseMessage;
             log.error(msg);
             throw new IllegalStateException(msg);
         }
@@ -1992,9 +1910,7 @@ public class IClickerLogic {
      */
     public Map<String, String> decodeGetRegisteredForClickerMACResult(String xml) {
         /*
-            <StudentEnrol>
-                <S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/>
-            </StudentEnrol>
+         * <StudentEnrol> <S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/> </StudentEnrol>
          */
 
         if (StringUtils.isBlank(xml)) {
@@ -2050,14 +1966,14 @@ public class IClickerLogic {
         return m;
     }
 
-    public static final char AMP   = '&';
-    public static final char APOS  = '\'';
-    public static final char GT    = '>';
-    public static final char LT    = '<';
-    public static final char QUOT  = '"';
+    public static final char AMP = '&';
+    public static final char APOS = '\'';
+    public static final char GT = '>';
+    public static final char LT = '<';
+    public static final char QUOT = '"';
+
     /**
-     * Escape a string for XML encoding: replace special characters with XML escapes
-     * <br/>
+     * Escape a string for XML encoding: replace special characters with XML escapes <br/>
      * &, <, >, ", ' will be escaped
      * 
      * @param string The string to be escaped.

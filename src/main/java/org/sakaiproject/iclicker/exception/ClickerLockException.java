@@ -18,10 +18,8 @@
  */
 package org.sakaiproject.iclicker.exception;
 
-
 /**
- * Exception which indicates that the lock could not be obtained,
- * most likely because it is already in use 
+ * Exception which indicates that the lock could not be obtained, most likely because it is already in use
  */
 public class ClickerLockException extends RuntimeException {
 

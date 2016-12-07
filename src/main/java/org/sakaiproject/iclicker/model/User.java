@@ -108,7 +108,7 @@ public class User {
 
     public static class UsernameComparator implements Comparator<User>, Serializable {
 
-        public final static long serialVersionUID = 1l;
+        public static final long serialVersionUID = 1L;
 
         public int compare(User o1, User o2) {
             return o1.username.compareTo(o2.username);
@@ -118,7 +118,7 @@ public class User {
 
     public static class SortnameComparator implements Comparator<User>, Serializable {
 
-        public final static long serialVersionUID = 1l;
+        public static final long serialVersionUID = 1L;
 
         public int compare(User o1, User o2) {
             return o1.sortName.compareTo(o2.sortName);

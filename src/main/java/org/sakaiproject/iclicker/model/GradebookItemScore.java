@@ -57,7 +57,7 @@ public class GradebookItemScore {
         if (StringUtils.isBlank(grade)) {
             throw new IllegalArgumentException("grade must be set");
         }
-        if (StringUtils.isBlank(userId) && StringUtils.isBlank(username) ) {
+        if (StringUtils.isBlank(userId) && StringUtils.isBlank(username)) {
             throw new IllegalArgumentException("userId or username must be set");
         }
 
@@ -76,14 +76,14 @@ public class GradebookItemScore {
     }
 
     public void assignId(String itemName, String userId) {
-        this.id = itemName+":"+userId;
+        this.id = itemName + ":" + userId;
         this.itemName = itemName;
         this.userId = userId;
     }
 
     @Override
     public String toString() {
-        return "("+id+":"+username+":"+grade+":"+recorded+")";
+        return "(" + id + ":" + username + ":" + grade + ":" + recorded + ")";
     }
 
     @Override

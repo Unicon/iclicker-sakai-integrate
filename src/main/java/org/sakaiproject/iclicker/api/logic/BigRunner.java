@@ -22,21 +22,27 @@ import java.util.Observable;
 
 /**
  * Special class for handling long running operations
- * 
  */
 public interface BigRunner extends Runnable {
-    public static final String RUNNER_TYPE_ADD = "add";
-    public static final String RUNNER_TYPE_REMOVE = "remove";
-    public static final String RUNNER_TYPE_SYNC = "sync";
-    public static final String RUNNER_LOCK = "bigRunnerLock";
+    String RUNNER_TYPE_ADD = "add";
+    String RUNNER_TYPE_REMOVE = "remove";
+    String RUNNER_TYPE_SYNC = "sync";
+    String RUNNER_LOCK = "bigRunnerLock";
 
-    public int getTotalItems();
-    public int getItemsCompleted();
-    public int getPercentCompleted();
-    public boolean isComplete();
-    public boolean isError();
-    public void setFailure(Exception e);
-    public String getType();
-    public Observable getObservable();
+    int getTotalItems();
+
+    int getItemsCompleted();
+
+    int getPercentCompleted();
+
+    boolean isComplete();
+
+    boolean isError();
+
+    void setFailure(Exception e);
+
+    String getType();
+
+    Observable getObservable();
 
 }

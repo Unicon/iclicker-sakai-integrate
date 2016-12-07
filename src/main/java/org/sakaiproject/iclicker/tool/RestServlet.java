@@ -47,10 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This servlet will basically take the place of entitybroker in versions of Sakai that do not have
- * it <br/> 
- * More help info at:
- * <br/> 
+ * This servlet will basically take the place of entitybroker in versions of Sakai that do not have it <br/>
+ * More help info at: <br/>
  * http://localhost:8080/iclicker/rest
  */
 public class RestServlet extends HttpServlet {
@@ -84,7 +82,7 @@ public class RestServlet extends HttpServlet {
         log.info("INIT");
         super.init(config);
         // get the services
-        IClickerLogic logic = getLogic();
+        getLogic();
         log.debug("IClickerLogic: {}:", logic);
     }
 
@@ -120,7 +118,8 @@ public class RestServlet extends HttpServlet {
     }
 
     @SuppressWarnings("unchecked")
-    protected void handle(HttpServletRequest req, HttpServletResponse res, String method) throws ServletException, IOException {
+    protected void handle(HttpServletRequest req, HttpServletResponse res, String method)
+                    throws ServletException, IOException {
         // force all response encoding to UTF-8 / XML by default
         res.setCharacterEncoding("UTF-8");
         // get the path
@@ -140,7 +139,7 @@ public class RestServlet extends HttpServlet {
         // check to see if this is one of the paths we understand
         if (StringUtils.isBlank(path) || segments.length == 0) {
             valid = false;
-            output = "Unknown path ("+path+") specified"; 
+            output = "Unknown path (" + path + ") specified";
             status = HttpServletResponse.SC_NOT_FOUND;
         }
 
@@ -151,7 +150,7 @@ public class RestServlet extends HttpServlet {
             status = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
         }
 
-        // attempt to handle the request 
+        // attempt to handle the request
         if (valid) {
             // check against the ones we know and process
             String pathSeg0 = HttpRESTUtils.getPathSegment(path, 0);
@@ -164,12 +163,13 @@ public class RestServlet extends HttpServlet {
                 StringBuilder sb = new StringBuilder();
                 sb.append("[");
 
-                for (Map.Entry<String, String[]> entry : (Set<Map.Entry<String, String[]>>)req.getParameterMap().entrySet()) {
+                for (Map.Entry<String, String[]> entry : (Set<Map.Entry<String, String[]>>) req.getParameterMap()
+                                .entrySet()) {
                     sb.append(entry.getKey()).append("=").append(Arrays.toString(entry.getValue())).append(", ");
                 }
 
                 if (sb.length() > 2) {
-                    sb.setLength(sb.length() - 2);  //Removes the last comma
+                    sb.setLength(sb.length() - 2); // Removes the last comma
                 }
 
                 sb.append("]");
@@ -217,7 +217,8 @@ public class RestServlet extends HttpServlet {
                             List<Course> courses = logic.getCoursesForInstructorWithStudents(courseId);
 
                             if (courses.isEmpty()) {
-                                throw new SecurityException("No courses found, only instructors can access instructor courses listings");
+                                throw new SecurityException(
+                                                "No courses found, only instructors can access instructor courses listings");
                             }
 
                             output = logic.encodeCourses(userId, courses);
@@ -226,7 +227,8 @@ public class RestServlet extends HttpServlet {
                             String courseId = pathSeg1;
 
                             if (courseId == null) {
-                                throw new IllegalArgumentException("valid courseId must be included in the URL /students/{courseId}");
+                                throw new IllegalArgumentException(
+                                                "valid courseId must be included in the URL /students/{courseId}");
                             }
 
                             if (restDebug) {
@@ -241,7 +243,7 @@ public class RestServlet extends HttpServlet {
                         } else {
                             // UNKNOWN
                             valid = false;
-                            output = "Unknown path (" + path + ") specified"; 
+                            output = "Unknown path (" + path + ") specified";
                             status = HttpServletResponse.SC_NOT_FOUND;
                         }
                     } else {
@@ -251,7 +253,8 @@ public class RestServlet extends HttpServlet {
                             String courseId = pathSeg1;
 
                             if (courseId == null) {
-                                throw new IllegalArgumentException("valid courseId must be included in the URL /gradebook/{courseId}");
+                                throw new IllegalArgumentException(
+                                                "valid courseId must be included in the URL /gradebook/{courseId}");
                             }
 
                             getAndCheckCurrentUser("upload grades into the gradebook");
@@ -320,7 +323,8 @@ public class RestServlet extends HttpServlet {
                                 regStatus = true;
                             } catch (ClickerIdInvalidException e) {
                                 // invalid clicker id;
-                                message = logic.getMessage("reg.registered.clickerId.invalid", locale, cr.getClickerId());
+                                message = logic.getMessage("reg.registered.clickerId.invalid", locale,
+                                                cr.getClickerId());
                             } catch (IllegalArgumentException e) {
                                 // invalid user id
                                 message = "Student not found in the CMS";
@@ -338,7 +342,8 @@ public class RestServlet extends HttpServlet {
 
                                 message = logic.getMessage(key, locale, cr.getClickerId());
                             }
-                            List<ClickerRegistration> registrations = logic.getClickerRegistrationsForUser(ownerId, true);
+                            List<ClickerRegistration> registrations = logic.getClickerRegistrationsForUser(ownerId,
+                                            true);
                             output = logic.encodeClickerRegistrationResult(registrations, regStatus, message);
 
                             if (regStatus) {
@@ -350,7 +355,7 @@ public class RestServlet extends HttpServlet {
                         } else {
                             // UNKNOWN
                             valid = false;
-                            output = "Unknown path ("+path+") specified"; 
+                            output = "Unknown path (" + path + ") specified";
                             status = HttpServletResponse.SC_NOT_FOUND;
                         }
                     }
@@ -363,7 +368,7 @@ public class RestServlet extends HttpServlet {
                     output = "User must be logged in to perform this action: " + e;
                     status = HttpServletResponse.SC_UNAUTHORIZED;
                 } else {
-                    output = "User ("+currentUserId+") is not allowed to perform this action: " + e;
+                    output = "User (" + currentUserId + ") is not allowed to perform this action: " + e;
                     status = HttpServletResponse.SC_FORBIDDEN;
                 }
             } catch (IllegalArgumentException e) {
@@ -400,32 +405,10 @@ public class RestServlet extends HttpServlet {
             res.setStatus(status);
             res.setContentType("text/plain");
             // add helpful info to the output
-            String msg = "ERROR "+status+": Invalid request ("
-                + req.getMethod()+" "+req.getContextPath()+req.getServletPath()+path+")" 
-                + "\n\n=INFO========================================================================================\n"
-                + output
-                + "\n\n-HELP----------------------------------------------------------------------------------------\n"
-                + "Valid request paths include the following (without the servlet prefix: "+req.getContextPath()+req.getServletPath()+"):\n"
-                + "POST /authenticate             - authenticate by sending credentials ("+LOGIN+","+PASSWORD+") \n"
-                + "                                 return status 204 (valid login) \n"
-                + "POST /verifykey                - check the encoded key is valid and matches the shared key \n"
-                + "                                 return 200 if valid OR 501 if SSO not enabled OR 400/401 if key is bad \n"
-                + "POST /register                 - Add a new clicker registration, return 200 for success or 400 with \n"
-                + "                                 registration response (XML) for failure \n"
-                + "GET  /courses                  - returns the list of courses for the current user (XML) \n"
-                + "GET  /students/{courseId}      - returns the list of student enrollments for the given course (XML) \n"
-                + "                                 or 403 if user is not an instructor in the specified course \n"
-                + "POST /gradebook/{courseId}     - send the gradebook data into the system, returns errors on failure (XML) \n"
-                + "                                 or 'True' if no errors, 400 if the xml is missing or courseid is invalid, \n"
-                + "                                 403 if user is not an instructor in the specified course \n"
-                + "\n"
-                + " - Authenticate by sending credentials ("+LOGIN+","+PASSWORD+") or by sending a valid session id ("+SESSION_ID+") in the request parameters \n"
-                + " -- SSO authentication requires an encoded key ("+SSO_KEY+") in the request parameters \n"
-                + " -- The response headers will include the sessionId when credentials are valid \n"
-                + " -- Invalid credentials or sessionId will result in a 401 (invalid credentials) or 403 (not authorized) status \n"
-                + " - Use "+COMPENSATE_METHOD+" to override the http method being used (e.g. POST /courses?"+COMPENSATE_METHOD+"=GET will force the method to be a GET despite sending as a POST) \n"
-                + " - Send data as the http request BODY or as a form parameter called "+XML_DATA+" \n"
-                + " - All endpoints return 403 if user is not an instructor \n";
+            String msg = "ERROR " + status + ": Invalid request (" + req.getMethod() + " " + req.getContextPath() + req
+                            .getServletPath() + path + ")" + "\n\n=INFO========================================================================================\n" + output + "\n\n-HELP----------------------------------------------------------------------------------------\n" + "Valid request paths include the following (without the servlet prefix: " + req
+                                            .getContextPath() + req
+                                                            .getServletPath() + "):\n" + "POST /authenticate             - authenticate by sending credentials (" + LOGIN + "," + PASSWORD + ") \n" + "                                 return status 204 (valid login) \n" + "POST /verifykey                - check the encoded key is valid and matches the shared key \n" + "                                 return 200 if valid OR 501 if SSO not enabled OR 400/401 if key is bad \n" + "POST /register                 - Add a new clicker registration, return 200 for success or 400 with \n" + "                                 registration response (XML) for failure \n" + "GET  /courses                  - returns the list of courses for the current user (XML) \n" + "GET  /students/{courseId}      - returns the list of student enrollments for the given course (XML) \n" + "                                 or 403 if user is not an instructor in the specified course \n" + "POST /gradebook/{courseId}     - send the gradebook data into the system, returns errors on failure (XML) \n" + "                                 or 'True' if no errors, 400 if the xml is missing or courseid is invalid, \n" + "                                 403 if user is not an instructor in the specified course \n" + "\n" + " - Authenticate by sending credentials (" + LOGIN + "," + PASSWORD + ") or by sending a valid session id (" + SESSION_ID + ") in the request parameters \n" + " -- SSO authentication requires an encoded key (" + SSO_KEY + ") in the request parameters \n" + " -- The response headers will include the sessionId when credentials are valid \n" + " -- Invalid credentials or sessionId will result in a 401 (invalid credentials) or 403 (not authorized) status \n" + " - Use " + COMPENSATE_METHOD + " to override the http method being used (e.g. POST /courses?" + COMPENSATE_METHOD + "=GET will force the method to be a GET despite sending as a POST) \n" + " - Send data as the http request BODY or as a form parameter called " + XML_DATA + " \n" + " - All endpoints return 403 if user is not an instructor \n";
             res.setContentLength(msg.length());
             res.getWriter().print(msg);
         }
@@ -433,6 +416,7 @@ public class RestServlet extends HttpServlet {
 
     /**
      * Extracts the XML data from the request
+     * 
      * @param req the request
      * @return the XML data OR null if none can be found
      */
@@ -448,6 +432,7 @@ public class RestServlet extends HttpServlet {
 
     /**
      * Check that the current user is set and that they are an instructor or admin
+     * 
      * @param msg the message about what this action is, like "upload grades"
      * @return the current user ID
      * @throws SecurityException is there is no current user or they are not allowed
@@ -459,7 +444,7 @@ public class RestServlet extends HttpServlet {
             throw new SecurityException("Only logged in users can " + msg);
         }
 
-        if (! isAdmin(userId) && ! isInstructor(userId)) {
+        if (!isAdmin(userId) && !isInstructor(userId)) {
             throw new SecurityException("Only instructors can " + msg);
         }
 
@@ -475,13 +460,14 @@ public class RestServlet extends HttpServlet {
             sessionId = getLogic().authenticate(auth.getLoginName(), auth.getPassword(), ssoKey);
 
             if (sessionId == null) {
-                throw new SecurityException("Invalid login credentials ("+LOGIN+","+PASSWORD+") supplied");
+                throw new SecurityException("Invalid login credentials (" + LOGIN + "," + PASSWORD + ") supplied");
             }
         } else if (sessionId != null && sessionId.length() > 1) {
             boolean valid = getLogic().getExternalLogic().validateSessionId(sessionId, true);
 
-            if (! valid) {
-                throw new SecurityException("Invalid "+SESSION_ID+" provided, session may have expired, send new login credentials");
+            if (!valid) {
+                throw new SecurityException(
+                                "Invalid " + SESSION_ID + " provided, session may have expired, send new login credentials");
             }
         }
 

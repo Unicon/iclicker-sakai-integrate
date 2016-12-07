@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Handles the execution of large scale tasks and the tracking thereof 
+ * Handles the execution of large scale tasks and the tracking thereof
  */
 public abstract class BigRunnerImpl extends Observable implements BigRunner {
     @Setter private int total = 0;
@@ -115,7 +115,7 @@ public abstract class BigRunnerImpl extends Observable implements BigRunner {
 
     @Override
     public String toString() {
-        return "RUNNER:type="+type+",complete="+complete+",total="+total+",complete="+completed+" " + super.toString();
+        return "RUNNER:type=" + type + ",complete=" + complete + ",total=" + total + ",complete=" + completed + " " + super.toString();
     }
 
 }

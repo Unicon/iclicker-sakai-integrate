@@ -40,9 +40,9 @@ public class IClickerDaoImplTest extends AbstractTransactionalSpringContextTests
     private ClickerRegistration item;
     private ClickerRegistration item2;
 
-    private final static String ITEM_TITLE = "New Title";
-    private final static String ITEM_OWNER = "11111111";
-    private final static String ITEM_SITE = "22222222";
+    private static final String ITEM_TITLE = "New Title";
+    private static final String ITEM_OWNER = "11111111";
+    private static final String ITEM_SITE = "22222222";
 
     protected String[] getConfigLocations() {
         // point to the needed spring config files, must be on the classpath

@@ -99,7 +99,7 @@ public class ClickerRegistration implements Serializable {
      * @return a unique key which can be used for maps
      */
     public String getKey() {
-        return clickerId+":"+ownerId;
+        return clickerId + ":" + ownerId;
     }
 
     @Override

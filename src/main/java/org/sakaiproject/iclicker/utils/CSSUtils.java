@@ -9,7 +9,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *	   http://www.opensource.org/licenses/ECL-2.0
+ *     http://www.opensource.org/licenses/ECL-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,14 +33,13 @@ import org.sakaiproject.component.cover.ServerConfigurationService;
             <version>10</version>
         </dependency>
  */
-public class CSSUtils {
+public final class CSSUtils {
 
     private static final String PORTAL_SKIN_NEOPREFIX_PROPERTY = "portal.neoprefix";
     private static final String PORTAL_SKIN_NEOPREFIX_DEFAULT = "neo-";
 
     /**
-     * Returns a URL for the tool_base.css suitable for putting in an href=
-     * field.
+     * Returns a URL for the tool_base.css suitable for putting in an href= field.
      *
      * @return <code>cssToolBase</code> URL for the tool_base.css
      */
@@ -52,13 +51,10 @@ public class CSSUtils {
     }
 
     /**
-     * Captures the (yes) overly complex rules for the skin folder naming
-     * convention
+     * Captures the (yes) overly complex rules for the skin folder naming convention
      *
-     * @param <code>skinFolder</code>
-     *            The folder where the skins are to be found.
-     * @return <code>skinFolder</code> The adjusted folder where the skins can
-     *         be found.
+     * @param <code>skinFolder</code> The folder where the skins are to be found.
+     * @return <code>skinFolder</code> The adjusted folder where the skins can be found.
      */
     public static String adjustCssSkinFolder(String skinFolder) {
         if (skinFolder == null) {
@@ -87,8 +83,7 @@ public class CSSUtils {
     /**
      * Returns a URL for the tool.css suitable for putting in an href= field.
      *
-     * @param <code>skinFolder</code>
-     *            where the tool.css skin lives for this site.
+     * @param <code>skinFolder</code> where the tool.css skin lives for this site.
      * @return <code>cssToolSkin</code> URL for the tool.css
      */
     public static String getCssToolSkin(String skinFolder) {
@@ -102,13 +97,15 @@ public class CSSUtils {
     /**
      * Returns a URL for the tool.css suitable for putting in an href= field.
      *
-     * @param <code>site</code>
-     *            The site for this tool.
+     * @param <code>site</code> The site for this tool.
      * @return <code>cssToolSkin</code> URL for the tool.css
      */
     public static String getCssToolSkin(Site site) {
         String skinFolder = site.getSkin();
         return getCssToolSkin(skinFolder);
+    }
+
+    private CSSUtils() {
     }
 
 }

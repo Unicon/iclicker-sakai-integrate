@@ -44,7 +44,7 @@ public class Gradebook {
 
     @Override
     public String toString() {
-        return id+":("+students+"):"+items;
+        return id + ":(" + students + "):" + items;
     }
 
     @Override

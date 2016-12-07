@@ -84,7 +84,7 @@ public class GradebookItem {
 
     @Override
     public String toString() {
-        return "{"+name+" ["+id+"] "+pointsPossible+":"+dueDate+":"+type+"::"+scores+"}";
+        return "{" + name + " [" + id + "] " + pointsPossible + ":" + dueDate + ":" + type + "::" + scores + "}";
     }
 
     @Override

@@ -19,29 +19,25 @@
 package org.sakaiproject.iclicker.exception;
 
 /**
- * Exception which indicates a failure in the clickerId,
- * {@link #failure} indicates the {@link Failure} enum:
- * EMPTY, LENGTH, CHARS, CHECKSUM, SAMPLE
- * 
+ * Exception which indicates a failure in the clickerId, {@link #failure} indicates the {@link Failure} enum: EMPTY, LENGTH, CHARS, CHECKSUM, SAMPLE
  */
 public class ClickerIdInvalidException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public static enum Failure { 
+    public enum Failure {
         /**
          * the clickerId is null or empty string
          */
-        EMPTY, 
+        EMPTY,
         /**
-         * the clickerId length is not 8 chars (too long),
-         * shorter clickerIds are padded out to 8
+         * the clickerId length is not 8 chars (too long), shorter clickerIds are padded out to 8
          */
-        LENGTH, 
+        LENGTH,
         /**
          * the clickerId contains invalid characters
          */
-        CHARS, 
+        CHARS,
         /**
          * the clickerId did not validate using the checksum method
          */

@@ -543,7 +543,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         }
 
         // test valid encoded key
-        long timestamp = System.currentTimeMillis() / 1000l;
+        long timestamp = System.currentTimeMillis() / 1000L;
         byte[] sha1Bytes = DigestUtils.sha(key + ":" + timestamp);
         encodedKey = Hex.encodeHexString(sha1Bytes) + "|" + timestamp;
         boolean result = logicImpl.verifyKey(encodedKey);
