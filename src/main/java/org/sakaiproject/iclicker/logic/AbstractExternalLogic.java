@@ -449,8 +449,8 @@ public abstract class AbstractExternalLogic {
     private Course makeCourseFromSite(Site site) {
         long createdTime = System.currentTimeMillis() / 1000;
 
-        if (site.getCreatedTime() != null) {
-            createdTime = site.getCreatedTime().getTime() / 1000;
+        if (site.getCreatedDate() != null) {
+            createdTime = site.getCreatedDate().getTime() / 1000;
         }
 
         Course c = new Course(
@@ -584,7 +584,7 @@ public abstract class AbstractExternalLogic {
      * @param gbItemName [OPTIONAL] an item name to fetch from this gradebook (limit to this item only),
      * if null then all items are returned
      */
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     public Gradebook getCourseGradebook(String siteId, String gbItemName) {
         // The gradebookUID is the siteId, the gradebookID is a long
         String gbID = siteId;
@@ -610,21 +610,27 @@ public abstract class AbstractExternalLogic {
 
         ArrayList<String> studentIds = new ArrayList<>(studentUserIds.keySet());
 
+        List<Assignment> gbItems = gradebookService.getAssignments(gbID);
         if (gbItemName == null) {
-            List<Assignment> gbitems = gradebookService.getAssignments(gbID);
-
-            for (Assignment assignment : gbitems) {
+            for (Assignment assignment : gbItems) {
                 GradebookItem gbItem = makeGradebookItemFromAssignment(gbID, assignment, studentUserIds, studentIds);
                 gb.getItems().add(gbItem);
             }
         } else {
-            Assignment assignment = gradebookService.getAssignment(gbID, gbItemName);
+            Assignment assignment = null;
+
+            for (Assignment gbItem : gbItems) {
+                if (StringUtils.equals(gbItemName, gbItem.getName())) {
+                    assignment = gbItem;
+                    break;
+                }
+            }
 
             if (assignment != null) {
                 GradebookItem gbItem = makeGradebookItemFromAssignment(gbID, assignment, studentUserIds, studentIds);
                 gb.getItems().add(gbItem);
             } else {
-                throw new IllegalArgumentException("Invalid gradebook item name ("+gbItemName+"), no item with this name found in cource ("+siteId+")");
+                throw new IllegalArgumentException("Invalid gradebook item name (" + gbItemName + "), no item with this name found in course (" + siteId + ")");
             }
         }
 
@@ -683,14 +689,13 @@ public abstract class AbstractExternalLogic {
 
         // find by name
         if (gradebookService.isAssignmentDefined(gradebookUid, gbItem.getName())) {
-            assignment = gradebookService.getAssignment(gradebookUid, gbItem.getName());
-        }
+            List<Assignment> gbItems = gradebookService.getAssignments(gradebookUid);
 
-        // in the pre-2.6 GB we can only lookup by name
-        if (assignment == null) {
-            // try to find by name
-            if (gradebookService.isAssignmentDefined(gradebookUid, gbItem.getName())) {
-                assignment = gradebookService.getAssignment(gradebookUid, gbItem.getName());
+            for (Assignment gbAssignment : gbItems) {
+                if (StringUtils.equals(gbAssignment.getName(), gbItem.getName())) {
+                    assignment = gbAssignment;
+                    break;
+                }
             }
         }
 
@@ -707,7 +712,7 @@ public abstract class AbstractExternalLogic {
                 assignment.setName(gbItem.getName());
                 assignment.setPoints(gbItem.getPointsPossible());
                 assignment.setReleased(gbItem.isReleased());
-                gradebookService.addAssignment(gradebookUid, assignment);
+                assignment.setId(gradebookService.addAssignment(gradebookUid, assignment));
             } else {
                 assignment.setExternallyMaintained(false); // cannot modify it later if true
 
@@ -819,7 +824,7 @@ public abstract class AbstractExternalLogic {
 
             // put the errors in the item
             if (errorsCount > 0) {
-                gbItem.setScoreErrors(new HashMap<>());
+                gbItem.setScoreErrors(new HashMap<String, String>());
 
                 for (GradebookItemScore score : gbItem.getScores()) {
                     gbItem.getScoreErrors().put(score.getId(), score.getError());
