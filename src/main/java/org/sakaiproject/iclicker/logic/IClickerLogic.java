@@ -916,6 +916,7 @@ public class IClickerLogic {
             // get the set of all registrations
             Search search = new Search();
             search.addRestriction(new Restriction("activated", true)); // only active ones
+            search.addRestriction(new Restriction("clickerId", 8, Restriction.EQUALS)); // only ones with eight digit clicker registration IDs
 
             // noinspection StatementWithEmptyBody
             if (students.size() <= 500) {

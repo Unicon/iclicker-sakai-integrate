@@ -118,8 +118,7 @@ public class RestServlet extends HttpServlet {
     }
 
     @SuppressWarnings("unchecked")
-    protected void handle(HttpServletRequest req, HttpServletResponse res, String method)
-                    throws ServletException, IOException {
+    protected void handle(HttpServletRequest req, HttpServletResponse res, String method) throws ServletException, IOException {
         // force all response encoding to UTF-8 / XML by default
         res.setCharacterEncoding("UTF-8");
         // get the path
@@ -217,8 +216,7 @@ public class RestServlet extends HttpServlet {
                             List<Course> courses = logic.getCoursesForInstructorWithStudents(courseId);
 
                             if (courses.isEmpty()) {
-                                throw new SecurityException(
-                                                "No courses found, only instructors can access instructor courses listings");
+                                throw new SecurityException("No courses found, only instructors can access instructor courses listings");
                             }
 
                             output = logic.encodeCourses(userId, courses);
@@ -227,8 +225,7 @@ public class RestServlet extends HttpServlet {
                             String courseId = pathSeg1;
 
                             if (courseId == null) {
-                                throw new IllegalArgumentException(
-                                                "valid courseId must be included in the URL /students/{courseId}");
+                                throw new IllegalArgumentException("valid courseId must be included in the URL /students/{courseId}");
                             }
 
                             if (restDebug) {
