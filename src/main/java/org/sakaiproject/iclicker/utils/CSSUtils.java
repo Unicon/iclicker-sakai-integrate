@@ -35,8 +35,8 @@ import org.sakaiproject.component.cover.ServerConfigurationService;
  */
 public final class CSSUtils {
 
-    private static final String PORTAL_SKIN_NEOPREFIX_PROPERTY = "portal.neoprefix";
-    private static final String PORTAL_SKIN_NEOPREFIX_DEFAULT = "neo-";
+    private static final String PORTAL_SKIN_DEFAULT_PROPERTY = "skin.default";
+    private static final String PORTAL_SKIN_MORPHEUS_PREFIX_DEFAULT = "morpheus";
 
     /**
      * Returns a URL for the tool_base.css suitable for putting in an href= field.
@@ -58,22 +58,22 @@ public final class CSSUtils {
      */
     public static String adjustCssSkinFolder(String skinFolder) {
         if (skinFolder == null) {
-            skinFolder = ServerConfigurationService.getString("skin.default");
+            skinFolder = ServerConfigurationService.getString(PORTAL_SKIN_DEFAULT_PROPERTY);
 
             if (skinFolder == null) {
                 skinFolder = ""; // Not likely - not good if it happens
             }
         }
 
-        String prefix = ServerConfigurationService.getString(PORTAL_SKIN_NEOPREFIX_PROPERTY, PORTAL_SKIN_NEOPREFIX_DEFAULT);
+        String prefix = ServerConfigurationService.getString(PORTAL_SKIN_DEFAULT_PROPERTY, "");
 
         if (prefix == null) {
             prefix = "";
         }
 
-        String templates = ServerConfigurationService.getString("portal.templates", "neoskin");
+        String templates = ServerConfigurationService.getString("portal.templates", PORTAL_SKIN_MORPHEUS_PREFIX_DEFAULT);
 
-        if (StringUtils.equals("neoskin", templates) && !StringUtils.startsWith(skinFolder, prefix)) {
+        if (StringUtils.equals(PORTAL_SKIN_MORPHEUS_PREFIX_DEFAULT, templates) && !StringUtils.startsWith(skinFolder, prefix)) {
             skinFolder = prefix + skinFolder;
         }
 
