@@ -106,6 +106,7 @@ public class IClickerLogic {
     @Getter private boolean singleSignOnHandling = false;
     private String singleSignOnSharedkey = null;
     private int maxCoursesForInstructor = 100;
+    private static final int CLICKERGOID_LENGTH = 8;
     @Getter private List<String> failures = new Vector<>();
 
     /**
@@ -1794,7 +1795,7 @@ public class IClickerLogic {
     /**
      * Verify a clicker id with the GO webservices server, Returns true on success OR ClickerIdInvalidException on failure
      *
-     * @param clickerGOId 12 char clicker go id
+     * @param clickerGOId 8 char clicker go id
      * @param studentLastName user last name
      * @return bool true if the clicker id is valid and linked to the provided user lastname (or throws exception)
      * @throws ClickerIdInvalidException (GO_LASTNAME) if the lastname does not match OR GO_NO_MATCH if it does not match
@@ -1804,6 +1805,9 @@ public class IClickerLogic {
     public boolean wsGoVerifyId(String clickerGOId, String studentLastName) {
         if (clickerGOId == null || studentLastName == null) {
             throw new IllegalArgumentException("clickerGOId=" + clickerGOId + " and studentLastName=" + studentLastName + " must both be set");
+        }
+        if (StringUtils.length(clickerGOId) != CLICKERGOID_LENGTH) {
+            throw new IllegalArgumentException("clickerGOId= '" + clickerGOId + "' must be 8 characters");
         }
 
         String resultXML;
@@ -1825,8 +1829,7 @@ public class IClickerLogic {
 
         if (resultXML == null) {
             // no registration matches
-            throw new ClickerIdInvalidException("No match found on the server for clicker: " + clickerGOId,
-                            Failure.GO_NO_MATCH, clickerGOId);
+            throw new ClickerIdInvalidException("No match found on the server for clicker: " + clickerGOId, Failure.GO_NO_MATCH, clickerGOId);
         } else {
             // <StudentEnrol><S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/></StudentEnrol>
             resultXML = new String(Base64.decodeBase64(resultXML));

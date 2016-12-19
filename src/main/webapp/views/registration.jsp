@@ -62,7 +62,7 @@
                 <input type="hidden" name="register" value="true" />
                 <p class="highlighted">
                     <strong><fmt:message key="reg.remote.id.enter">Enter Your i>clicker Remote ID</fmt:message>:</strong> 
-                    <input name="clickerId" type="text" size="14" maxlength="12" value="${clickerIdText}" />
+                    <input name="clickerId" type="text" size="10" maxlength="8" value="${clickerIdText}" />
                     <input type="submit" class="registerButton" value="<fmt:message key="app.register">Register</fmt:message>" 
                         alt="<fmt:message key="reg.register.submit.alt" />" />
                 </p>
