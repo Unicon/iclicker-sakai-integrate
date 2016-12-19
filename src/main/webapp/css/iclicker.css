@@ -270,8 +270,3 @@
     text-decoration:underline;
     color:#0F197B;
 }
-
-/* this is a hack to display the i>clicker title in lowercase (per copyright) */
-a.Mrphs-hierarchy--toolName {
-    text-transform: none !important;
-}
