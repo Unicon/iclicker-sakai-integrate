@@ -18,14 +18,10 @@
  */
 package org.sakaiproject.iclicker.logic;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.sakaiproject.entitybroker.util.http.HttpRESTUtils;
-import org.sakaiproject.entitybroker.util.http.HttpResponse;
 import org.sakaiproject.genericdao.api.search.Order;
 import org.sakaiproject.genericdao.api.search.Restriction;
 import org.sakaiproject.genericdao.api.search.Search;
@@ -74,6 +70,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -594,6 +591,10 @@ public class IClickerLogic {
             if (!canReadItem(item, externalLogic.getCurrentUserId())) {
                 throw new SecurityException("User (" + externalLogic.getCurrentUserId() + ") not allowed to access registration (" + item + ")");
             }
+            if (!isValidClickerRegistration(item)) {
+                // invalid registration, don't return it
+                return null;
+            }
         }
 
         return item;
@@ -773,6 +774,9 @@ public class IClickerLogic {
         if (item == null) {
             throw new IllegalArgumentException("item cannot be null");
         }
+        if (!isValidClickerRegistration(item)) {
+            throw new ClickerIdInvalidException("Invalid clicker registration.", Failure.LENGTH, item.getClickerId());
+        }
 
         String clickerId = StringUtils.trimToNull(item.getClickerId());
 
@@ -916,7 +920,6 @@ public class IClickerLogic {
             // get the set of all registrations
             Search search = new Search();
             search.addRestriction(new Restriction("activated", true)); // only active ones
-            search.addRestriction(new Restriction("clickerId", 8, Restriction.EQUALS)); // only ones with eight digit clicker registration IDs
 
             // noinspection StatementWithEmptyBody
             if (students.size() <= 500) {
@@ -931,6 +934,7 @@ public class IClickerLogic {
 
             search.addOrder(new Order("ownerId"));
             List<ClickerRegistration> l = dao.findBySearch(ClickerRegistration.class, search);
+            l = removeInvalidClickerRegistrations(l);
             // create map of registrations to owners
             HashMap<String, Set<ClickerRegistration>> ownerToReg = new HashMap<>();
 
@@ -1099,8 +1103,7 @@ public class IClickerLogic {
      * @throws IllegalStateException if the user cannot be found
      * @throws IllegalArgumentException if the data is invalid
      */
-    public String encodeClickerRegistrationResult(List<ClickerRegistration> registrations, boolean status,
-                    String message) {
+    public String encodeClickerRegistrationResult(List<ClickerRegistration> registrations, boolean status, String message) {
         if (registrations == null || registrations.isEmpty()) {
             throw new IllegalArgumentException("registrations must be set");
         }
@@ -1684,10 +1687,13 @@ public class IClickerLogic {
         if (StringUtils.isBlank(clickerId)) {
             throw new ClickerIdInvalidException("empty or null clickerId", Failure.EMPTY, clickerId);
         }
+        if (StringUtils.length(clickerId) > CLICKERGOID_LENGTH) {
+            throw new ClickerIdInvalidException("Clicker ID: '" + clickerId + "' length cannot be greater than " + CLICKERGOID_LENGTH, Failure.LENGTH, clickerId);
+        }
 
         int clickerIdLength = clickerId.length();
 
-        if (clickerIdLength == 12) {
+        if (clickerIdLength == CLICKERGOID_LENGTH) {
             // support for new clicker go ids
             clickerId = clickerId.trim().toUpperCase();
 
@@ -1710,24 +1716,18 @@ public class IClickerLogic {
 
             if (!StringUtils.equals(currentGOKey, lastValidKey)) {
                 this.lastValidGOKey.remove();
-                wsGoVerifyId(clickerId, lastName); // ClickerIdInvalidException exception if invalid (or RT exception)
                 this.lastValidGOKey.set(currentGOKey);
             }
-        } else if (clickerIdLength <= 8) {
+        } else if (clickerIdLength < CLICKERGOID_LENGTH) {
             // remote ids
             clickerId = clickerId.trim().toUpperCase();
 
             if (!clickerId.matches("[0-9A-F]+")) {
-                throw new ClickerIdInvalidException("clickerId can only contains A-F and 0-9", Failure.CHARS,
-                                clickerId);
+                throw new ClickerIdInvalidException("clickerId can only contains A-F and 0-9", Failure.CHARS, clickerId);
             }
 
-            while (clickerId.length() < 8) {
+            while (clickerId.length() < CLICKERGOID_LENGTH) {
                 clickerId = "0" + clickerId;
-            }
-
-            if (StringUtils.equals(CLICKERID_SAMPLE, clickerId)) {
-                throw new ClickerIdInvalidException("clickerId cannot match the sample ID", Failure.SAMPLE, clickerId);
             }
 
             String[] idArray = new String[4];
@@ -1748,7 +1748,11 @@ public class IClickerLogic {
         } else {
             // totally invalid clicker length
             this.lastValidGOKey.remove();
-            throw new ClickerIdInvalidException("clicker_id is an invalid length (" + clickerIdLength + "), must be 8 or 12 chars", Failure.LENGTH, clickerId);
+            throw new ClickerIdInvalidException("clicker_id is an invalid length (" + clickerIdLength + "), must be less than or equal to " + CLICKERGOID_LENGTH + " chars", Failure.LENGTH, clickerId);
+        }
+
+        if (StringUtils.equals(CLICKERID_SAMPLE, clickerId)) {
+            throw new ClickerIdInvalidException("clickerId cannot match the sample ID", Failure.SAMPLE, clickerId);
         }
 
         return clickerId;
@@ -1767,7 +1771,7 @@ public class IClickerLogic {
         try {
             // validate the input, do nothing but return null if invalid
             clickerId = validateClickerId(clickerId, null);
-            if (clickerId.length() == 8) {
+            if (clickerId.length() == CLICKERGOID_LENGTH) {
                 char startsWith = clickerId.charAt(0);
                 if ('2' == startsWith || '4' == startsWith || '8' == startsWith) {
                     // found clicker to translate
@@ -1789,119 +1793,6 @@ public class IClickerLogic {
         }
 
         return alternateId;
-    }
-
-    // GO WEBSERVICES
-
-    /**
-     * Verify a clicker id with the GO webservices server, Returns true on success OR ClickerIdInvalidException on failure
-     *
-     * @param clickerGOId 8 char clicker go id
-     * @param studentLastName user last name
-     * @return bool true if the clicker id is valid and linked to the provided user lastname (or throws exception)
-     * @throws ClickerIdInvalidException (GO_LASTNAME) if the lastname does not match OR GO_NO_MATCH if it does not match
-     * @throws RuntimeException if the format does not match or a failure occurs
-     * @throws IllegalArgumentException if the params are not set
-     */
-    public boolean wsGoVerifyId(String clickerGOId, String studentLastName) {
-        if (clickerGOId == null || studentLastName == null) {
-            throw new IllegalArgumentException("clickerGOId=" + clickerGOId + " and studentLastName=" + studentLastName + " must both be set");
-        }
-        if (StringUtils.length(clickerGOId) != CLICKERGOID_LENGTH) {
-            throw new IllegalArgumentException("clickerGOId= '" + clickerGOId + "' must be 8 characters");
-        }
-
-        String resultXML;
-        String url = "https://www.iclickergo.com/webservice/webvoting.asmx";
-        String encodedClickerId = Base64.encodeBase64String(clickerGOId.getBytes());
-
-        try {
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("Host", "www.iclickergo.com");
-            headers.put("Content-Type", "application/soap+xml; charset=utf-8");
-            String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + "<soap12:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap12=\"http://www.w3.org/2003/05/soap-envelope\">\n" + "  <soap12:Body>\n" + "    <GetRegisteredForClickerMAC xmlns=\"http://www.iclicker.com/\">\n" + "      <pVarClickerID>" + encodedClickerId + "</pVarClickerID>\n" + "    </GetRegisteredForClickerMAC>\n" + "  </soap12:Body>\n" + "</soap12:Envelope>";
-            HttpResponse response = HttpRESTUtils.fireRequest(url, HttpRESTUtils.Method.POST, null, headers, xml, true);
-            resultXML = getXMLAndCheckResponse(response, "<GetRegisteredForClickerMACResult>", "</GetRegisteredForClickerMACResult>", "<GetRegisteredForClickerMACResult />");
-            resultXML = StringUtils.trimToNull(resultXML);
-        } catch (Exception e) {
-            throw new RuntimeException(
-                            "Failed to post verify id (" + clickerGOId + ") to webservice (" + url + "): " + e);
-        }
-
-        if (resultXML == null) {
-            // no registration matches
-            throw new ClickerIdInvalidException("No match found on the server for clicker: " + clickerGOId, Failure.GO_NO_MATCH, clickerGOId);
-        } else {
-            // <StudentEnrol><S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/></StudentEnrol>
-            resultXML = new String(Base64.decodeBase64(resultXML));
-
-            if (StringUtils.contains(resultXML, "StudentEnrol") && StringUtils.contains(resultXML, "LastName")) {
-                Map<String, String> data = decodeGetRegisteredForClickerMACResult(resultXML);
-                String lastName = data.get("LastName"); // StudentEnrol->LastName;
-                boolean verified = studentLastName.equalsIgnoreCase(lastName);
-
-                if (!verified) {
-                    // should we log a warning here? -AZ
-                    throw new ClickerIdInvalidException("Lastname (" + studentLastName + ") does not match with registered lastname (" + lastName + ") for clicker (" + clickerGOId + ")", Failure.GO_LASTNAME, clickerGOId);
-                }
-            } else {
-                // structure did not properly match
-                String msg = "i>clicker Webservices return structure does not match expected format (please contact support): " + resultXML;
-                log.error(msg);
-                throw new RuntimeException(msg);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param response the http response object
-     * @param start the start delimiter of the content
-     * @param end the end delimiter of the content
-     * @param emptyIndicator [OPTIONAL] if set and is contained in the body then returns empty result
-     * @return the body of the response between the start and end strings if there is one
-     * @throws IllegalStateException if the webservices fail or the response is invalid
-     */
-    private String getXMLAndCheckResponse(HttpResponse response, String start, String end, String emptyIndicator) {
-        if (response.getResponseCode() >= 400) {
-            String msg = "i>clicker Webservices failure: bad response code (" + response.responseCode + "), message: " + response.responseMessage;
-            log.error(msg);
-            throw new IllegalStateException(msg);
-        }
-
-        String xml;
-        String body = response.getResponseBody();
-
-        if (body != null) {
-            body = body.trim();
-
-            if (emptyIndicator != null && StringUtils.contains(body, emptyIndicator)) {
-                xml = "";
-            } else {
-                String result = StringUtils.substringBetween(body, start, end);
-
-                if (result == null) {
-                    String msg = "i>clicker Webservices failure: (" + response.responseCode + "), message:" + response.responseMessage + " : body=" + body;
-                    log.error(msg);
-                    throw new IllegalStateException(msg);
-                }
-
-                xml = StringEscapeUtils.unescapeXml(result);
-
-                if (xml.startsWith("<RetStatus")) {
-                    String msg = "i>clicker Webservices failure: (" + response.responseCode + "), message:" + response.responseMessage + " : xml=" + xml;
-                    log.error(msg);
-                    throw new IllegalStateException(msg);
-                }
-            }
-        } else {
-            String msg = "i>clicker Webservices failure: no response body from server: (" + response.responseCode + "), message:" + response.responseMessage;
-            log.error(msg);
-            throw new IllegalStateException(msg);
-        }
-
-        return xml;
     }
 
     /**
@@ -2011,6 +1902,39 @@ public class IClickerLogic {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Validates the clicker registration list, removing invalid ones
+     *
+     * @param clickerRegistrations
+     * @return
+     */
+    private List<ClickerRegistration> removeInvalidClickerRegistrations(List<ClickerRegistration> clickerRegistrations) {
+     // validate the clicker registration IDs
+        Iterator<ClickerRegistration> i = clickerRegistrations.iterator();
+        while (i.hasNext()) {
+            ClickerRegistration clickerRegistration = i.next();
+            if (!isValidClickerRegistration(clickerRegistration)) {
+                //invalid registration... remove it from the list
+                i.remove();
+            }
+        }
+
+        return clickerRegistrations;
+    }
+
+    /**
+     * Validates the clicker registration:
+     *
+     * 1. Clicker ID must be 8 characters
+     *
+     * @param clickerRegistration
+     * @return
+     */
+    private boolean isValidClickerRegistration(ClickerRegistration clickerRegistration) {
+        // clicker ID length is not less than or equal to 8 characters, so it is invalid
+        return StringUtils.length(clickerRegistration.getClickerId()) <= CLICKERGOID_LENGTH;
     }
 
     public static IClickerLogic getInstance() {

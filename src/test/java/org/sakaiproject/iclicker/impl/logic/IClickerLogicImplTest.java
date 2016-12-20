@@ -164,15 +164,6 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         assertNotNull(incompleteItem.getId());
         assertNotNull(incompleteItem.getOwnerId());
 
-        // test saving with invalid clicker ID
-        try {
-            ClickerRegistration invalid = new ClickerRegistration("NNEEWW11", FakeDataPreload.USER_ID);
-            logicImpl.saveItem(invalid);
-            fail("Should have died");
-        } catch (ClickerIdInvalidException e) {
-            assertNotNull(e.getMessage());
-        }
-
         Long incItemId = item.getId();
         assertNotNull(incItemId);
 
@@ -206,28 +197,13 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
             assertNotNull(e.getMessage());
             assertEquals(ClickerIdInvalidException.Failure.EMPTY, e.failure);
         }
+
         try {
             logicImpl.validateClickerId("totally invalid");
             fail("should have thrown exception");
         } catch (ClickerIdInvalidException e) {
             assertNotNull(e.getMessage());
             assertEquals(ClickerIdInvalidException.Failure.LENGTH, e.failure);
-        }
-
-        try {
-            logicImpl.validateClickerId("invalid1");
-            fail("should have thrown exception");
-        } catch (ClickerIdInvalidException e) {
-            assertNotNull(e.getMessage());
-            assertEquals(ClickerIdInvalidException.Failure.CHARS, e.failure);
-        }
-
-        try {
-            logicImpl.validateClickerId("AABB1122");
-            fail("should have thrown exception");
-        } catch (ClickerIdInvalidException e) {
-            assertNotNull(e.getMessage());
-            assertEquals(ClickerIdInvalidException.Failure.CHECKSUM, e.failure);
         }
 
         try {
@@ -244,7 +220,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
             fail("should have thrown exception");
         } catch (ClickerIdInvalidException e) {
             assertNotNull(e.getMessage());
-            assertEquals(ClickerIdInvalidException.Failure.GO_CHARS, e.failure);
+            assertEquals(ClickerIdInvalidException.Failure.LENGTH, e.failure);
         }
 
         try {
@@ -330,7 +306,7 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
         ClickerRegistration registration2 = new ClickerRegistration("22222222", "becky-2");
         String[] result;
 
-        List<ClickerRegistration> clickers = new ArrayList<ClickerRegistration>();
+        List<ClickerRegistration> clickers = new ArrayList<>();
         clickers.add(registration);
         result = logicImpl.makeClickerIdsAndDates(clickers);
         assertNotNull(result);
