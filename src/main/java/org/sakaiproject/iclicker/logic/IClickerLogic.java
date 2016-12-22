@@ -87,7 +87,7 @@ public class IClickerLogic {
     private static final Logger log = LoggerFactory.getLogger(IClickerLogic.class);
 
     public static final String VERSION = "11-SNAPSHOT"; // should match the POM version
-    public static final  String VERSION_DATE = "20140906"; // the date in YYYYMMDD
+    public static final String VERSION_DATE = "20161222"; // the date in YYYYMMDD
 
     // CONFIG
     public static final String DEFAULT_SERVER_URL = "http://localhost/sakai";
