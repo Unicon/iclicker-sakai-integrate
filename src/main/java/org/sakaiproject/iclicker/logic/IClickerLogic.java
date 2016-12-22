@@ -103,7 +103,7 @@ public class IClickerLogic {
     @Getter private boolean singleSignOnHandling = false;
     private String singleSignOnSharedkey = null;
     private int maxCoursesForInstructor = 100;
-    private static final int CLICKERGOID_LENGTH = 8;
+    private static final int CLICKERID_LENGTH = 8;
     @Getter private List<String> failures = new Vector<>();
 
     /**
@@ -1687,13 +1687,13 @@ public class IClickerLogic {
         if (StringUtils.isBlank(clickerId)) {
             throw new ClickerIdInvalidException("empty or null clickerId", Failure.EMPTY, clickerId);
         }
-        if (StringUtils.length(clickerId) > CLICKERGOID_LENGTH) {
-            throw new ClickerIdInvalidException("Clicker ID: '" + clickerId + "' length cannot be greater than " + CLICKERGOID_LENGTH, Failure.LENGTH, clickerId);
+        if (StringUtils.length(clickerId) > CLICKERID_LENGTH) {
+            throw new ClickerIdInvalidException("Clicker ID: '" + clickerId + "' length cannot be greater than " + CLICKERID_LENGTH, Failure.LENGTH, clickerId);
         }
 
         int clickerIdLength = clickerId.length();
 
-        if (clickerIdLength <= CLICKERGOID_LENGTH) {
+        if (clickerIdLength <= CLICKERID_LENGTH) {
             // remote ids
             clickerId = clickerId.trim().toUpperCase();
 
@@ -1701,7 +1701,7 @@ public class IClickerLogic {
                 throw new ClickerIdInvalidException("clickerId can only contains A-F and 0-9", Failure.CHARS, clickerId);
             }
 
-            while (clickerId.length() < CLICKERGOID_LENGTH) {
+            while (clickerId.length() < CLICKERID_LENGTH) {
                 clickerId = "0" + clickerId;
             }
 
@@ -1723,7 +1723,7 @@ public class IClickerLogic {
         } else {
             // totally invalid clicker length
             this.lastValidGOKey.remove();
-            throw new ClickerIdInvalidException("clicker_id is an invalid length (" + clickerIdLength + "), must be less than or equal to " + CLICKERGOID_LENGTH + " chars", Failure.LENGTH, clickerId);
+            throw new ClickerIdInvalidException("clicker_id is an invalid length (" + clickerIdLength + "), must be less than or equal to " + CLICKERID_LENGTH + " chars", Failure.LENGTH, clickerId);
         }
 
         if (StringUtils.equals(CLICKERID_SAMPLE, clickerId)) {
@@ -1746,7 +1746,7 @@ public class IClickerLogic {
         try {
             // validate the input, do nothing but return null if invalid
             clickerId = validateClickerId(clickerId, null);
-            if (clickerId.length() == CLICKERGOID_LENGTH) {
+            if (clickerId.length() == CLICKERID_LENGTH) {
                 char startsWith = clickerId.charAt(0);
                 if ('2' == startsWith || '4' == startsWith || '8' == startsWith) {
                     // found clicker to translate
@@ -1909,7 +1909,7 @@ public class IClickerLogic {
      */
     private boolean isValidClickerRegistration(ClickerRegistration clickerRegistration) {
         // clicker ID length is not less than or equal to 8 characters, so it is invalid
-        return StringUtils.length(clickerRegistration.getClickerId()) <= CLICKERGOID_LENGTH;
+        return StringUtils.length(clickerRegistration.getClickerId()) <= CLICKERID_LENGTH;
     }
 
     public static IClickerLogic getInstance() {
