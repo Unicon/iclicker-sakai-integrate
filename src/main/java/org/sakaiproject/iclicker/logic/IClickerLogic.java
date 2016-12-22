@@ -1693,32 +1693,7 @@ public class IClickerLogic {
 
         int clickerIdLength = clickerId.length();
 
-        if (clickerIdLength == CLICKERGOID_LENGTH) {
-            // support for new clicker go ids
-            clickerId = clickerId.trim().toUpperCase();
-
-            if (!clickerId.matches("[0-9A-Z]+")) {
-                throw new ClickerIdInvalidException("clickerId can only contain A-Z and 0-9", Failure.GO_CHARS, clickerId);
-            }
-
-            if (StringUtils.isEmpty(lastName)) {
-                if (this.externalLogic.getCurrentUserId() == null) {
-                    throw new ClickerIdInvalidException("No current user available, cannot validate GO clickerid: " + clickerId, Failure.GO_NO_USER, clickerId);
-                }
-
-                User u = this.externalLogic.getUser(this.externalLogic.getCurrentUserId());
-                lastName = u.getLname();
-            }
-
-            // store the validated clicker to avoid checking the WS repeatedly in a single request
-            String currentGOKey = clickerId + ":" + lastName;
-            String lastValidKey = this.lastValidGOKey.get();
-
-            if (!StringUtils.equals(currentGOKey, lastValidKey)) {
-                this.lastValidGOKey.remove();
-                this.lastValidGOKey.set(currentGOKey);
-            }
-        } else if (clickerIdLength < CLICKERGOID_LENGTH) {
+        if (clickerIdLength <= CLICKERGOID_LENGTH) {
             // remote ids
             clickerId = clickerId.trim().toUpperCase();
 

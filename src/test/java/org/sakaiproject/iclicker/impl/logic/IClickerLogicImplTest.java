@@ -239,6 +239,15 @@ public class IClickerLogicImplTest extends AbstractTransactionalSpringContextTes
             assertEquals(ClickerIdInvalidException.Failure.LENGTH, e.failure);
         }
 
+        // invalid 8 character ID
+        try {
+            logicImpl.validateClickerId("9D7E3ED1");
+            fail("should have thrown exception");
+        } catch (ClickerIdInvalidException e) {
+            assertNotNull(e.getMessage());
+            assertEquals(ClickerIdInvalidException.Failure.CHECKSUM, e.failure);
+        }
+
         // make sure valid ones work
         try {
             String id = logicImpl.validateClickerId("1445e7b6");
